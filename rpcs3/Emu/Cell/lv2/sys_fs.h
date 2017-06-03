@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Emu/Memory/Memory.h"
 #include "Emu/Cell/ErrorCodes.h"

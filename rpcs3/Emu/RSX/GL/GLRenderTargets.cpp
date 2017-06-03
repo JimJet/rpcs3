@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "../rsx_methods.h"
 #include "GLGSRender.h"
 #include "Emu/System.h"
@@ -220,8 +220,8 @@ void GLGSRender::init_buffers(bool skip_reading)
 			const u16 native_pitch = std::get<1>(m_rtts.m_bound_depth_stencil)->get_native_pitch();
 			if (native_pitch > depth_surface_pitch)
 			{
-				LOG_WARNING(RSX, "Bad depth surface pitch given: surface_width=%d, format=%d, pitch=%d, native_pitch=%d",
-					clip_horizontal, (u32)depth_format, depth_surface_pitch, native_pitch);
+				//LOG_WARNING(RSX, "Bad depth surface pitch given: surface_width=%d, format=%d, pitch=%d, native_pitch=%d",
+				//	clip_horizontal, (u32)depth_format, depth_surface_pitch, native_pitch);
 
 				//Will not transfer this surface between cell and rsx due to misalignment
 				//TODO: Verify correct behaviour

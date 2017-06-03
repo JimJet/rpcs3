@@ -1,8 +1,4 @@
-#include "stdafx.h"
-#include "Utilities/Config.h"
-=======
-#include "stdafx.h"
->>>>>>> upstream/master
+﻿#include "stdafx.h"
 #include "Utilities/lockless.h"
 #include "Emu/Memory/Memory.h"
 #include "Emu/System.h"
