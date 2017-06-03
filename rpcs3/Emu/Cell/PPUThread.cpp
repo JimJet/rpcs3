@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Utilities/VirtualMemory.h"
 #include "Crypto/sha1.h"
 #include "Emu/Memory/Memory.h"
