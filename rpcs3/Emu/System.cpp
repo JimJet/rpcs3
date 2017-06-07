@@ -427,12 +427,33 @@ void Emulator::Load()
 
 			if (m_elf_path.empty())
 			{
-				//m_elf_path = "/host_root/" + m_path;
-
-				const std::string& emu_dir = emu_dir_.empty() ? fs::get_config_dir() : emu_dir_;
-
-				m_elf_path = m_path;
-				m_elf_path.replace(0, emu_dir.length()-1, "");
+				if (GetTitleID()[0] == 'N')
+				{
+					//PSN Games are on /dev_hdd0/
+					size_t pos = m_path.rfind(GetTitleID());
+					if (pos==std::string::npos)
+					{
+						LOG_ERROR(LOADER, "Title ID isn't present in the path(%s)", m_path);
+						return;
+					}
+					m_elf_path = "/dev_hdd0/game/" + m_path.erase(0, pos);
+				}
+				else if (GetTitleID()[0] == 'B')
+				{
+					//Disc games are on /dev_bdvd/
+					size_t pos = m_path.rfind("PS3_GAME");
+					if (pos == std::string::npos)
+					{
+						LOG_ERROR(LOADER, "Disc game without a PS3_GAME directory(%s)", m_path);
+						return;
+					}
+					m_elf_path = "/dev_bdvd/" + m_path.erase(0, pos);
+				}
+				else
+				{
+					//For homebrew
+					m_path= "/host_root/" + m_path;
+				}
 
 				LOG_NOTICE(LOADER, "Elf path: %s", m_elf_path);
 			}
