@@ -431,7 +431,7 @@ void Emulator::Load()
 				{
 					//Disc games are on /dev_bdvd/
 					size_t pos = m_path.rfind("PS3_GAME");
-					m_elf_path = "/dev_bdvd/" + m_path.erase(0, pos);
+					m_elf_path = "/dev_bdvd/" + m_path.substr(pos);
 				}
 				else if (GetTitleID().substr(0,2)=="NP")
 				{
@@ -442,7 +442,7 @@ void Emulator::Load()
 						LOG_ERROR(LOADER, "Title ID isn't present in the path(%s)", m_path);
 						return;
 					}
-					m_elf_path = "/dev_hdd0/game/" + m_path.erase(0, pos);
+					m_elf_path = "/dev_hdd0/game/" + m_path.substr(pos);
 				}
 				else
 				{
