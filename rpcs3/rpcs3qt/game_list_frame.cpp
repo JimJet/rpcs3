@@ -19,6 +19,7 @@
 #include <QMessageBox>
 #include <QProcess>
 #include <QTimer>
+#include <QUrl>
 
 static const std::string m_class_name = "GameViewer";
 inline std::string sstr(const QString& _in) { return _in.toUtf8().toStdString(); }
@@ -345,6 +346,7 @@ void game_list_frame::doubleClickedSlot(const QModelIndex& index)
 	{
 		const std::string& path = Emu.GetGameDir() + m_game_data[i].root;
 		emit RequestIconPathSet(path);
+		emit RequestAddRecentGame(qstr(path), qstr("[" + m_game_data[i].serial + "] " + m_game_data[i].name));
 
 		Emu.Stop();
 
@@ -438,6 +440,7 @@ void game_list_frame::Boot(int row)
 {
 	const std::string& path = Emu.GetGameDir() + m_game_data[row].root;
 	emit RequestIconPathSet(path);
+	emit RequestAddRecentGame(qstr(path), qstr("[" + m_game_data[row].serial + "] " + m_game_data[row].name));
 
 	Emu.Stop();
 
