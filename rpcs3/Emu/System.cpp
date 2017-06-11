@@ -431,7 +431,7 @@ void Emulator::Load()
 					size_t pos = m_path.rfind("PS3_GAME");
 					m_elf_path = "/dev_bdvd/" + m_path.substr(pos);
 				}
-				else if (GetTitleID().substr(0,2)=="NP")
+				else if (GetTitleID().substr(0, 2) == "NP")
 				{
 					//PSN Games are on /dev_hdd0/
 					size_t pos = m_path.rfind(GetTitleID());
@@ -445,7 +445,7 @@ void Emulator::Load()
 				else
 				{
 					//For homebrew
-					m_elf_path= "/host_root/" + m_path;
+					m_elf_path = "/host_root/" + m_path;
 				}
 
 				LOG_NOTICE(LOADER, "Elf path: %s", m_elf_path);
