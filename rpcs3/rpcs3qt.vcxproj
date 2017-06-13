@@ -201,7 +201,7 @@
       <AdditionalLibraryDirectories>..\3rdparty\OpenAL\libs\Win64;..\Vulkan\glslang-build\hlsl\Release;..\Vulkan\glslang-build\SPIRV\Release;..\Vulkan\glslang-build\OGLCompilersDLL\Release;..\Vulkan\glslang-build\glslang\OSDependent\Windows\Release;..\Vulkan\Vulkan-build\loader\Release;..\Vulkan\glslang-build\glslang\Release;..\lib\$(CONFIGURATION)-$(PLATFORM);..\3rdparty\minidx12\Lib;$(QTDIR)\lib;C:\utils\my_sql\my_sql\lib;C:\utils\postgresql\pgsql\lib;$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'" %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>true</DataExecutionPrevention>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <IgnoreImportLibrary>true</IgnoreImportLibrary>
       <LinkIncremental>false</LinkIncremental>
       <OutputFile>$(OutDir)\rpcs3-qt.exe</OutputFile>
