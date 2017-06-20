@@ -674,7 +674,7 @@ namespace rsx
 			verify(HERE), (std::get<0>(range) + std::get<1>(range) == std::get<0>(next_range));
 		}
 		u32 first = std::get<0>(draw_indexed_clause.front());
-		u32 count = std::get<0>(draw_indexed_clause.back()) + std::get<1>(draw_indexed_clause.back());
+		u32 count = std::get<0>(draw_indexed_clause.back()) + std::get<1>(draw_indexed_clause.back()) - first;
 		const gsl::byte* ptr = static_cast<const gsl::byte*>(vm::base(address));
 		return{ ptr, count * type_size };
 	}
@@ -694,7 +694,7 @@ namespace rsx
 			verify(HERE), (std::get<0>(range) + std::get<1>(range) == std::get<0>(next_range));
 		}
 		u32 first = std::get<0>(vertex_ranges.front());
-		u32 count = std::get<0>(vertex_ranges.back()) + std::get<1>(vertex_ranges.back());
+		u32 count = std::get<0>(vertex_ranges.back()) + std::get<1>(vertex_ranges.back()) - first;
 
 		const gsl::byte* ptr = gsl::narrow_cast<const gsl::byte*>(vm::base(address));
 		return {ptr + first * vertex_array_info.stride(), count * vertex_array_info.stride() + element_size};
