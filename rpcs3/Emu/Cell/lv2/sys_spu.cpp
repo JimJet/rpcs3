@@ -1184,6 +1184,38 @@ error_code sys_spu_thread_group_connect_event_all_threads(u32 id, u32 eq, u64 re
 	return CELL_OK;
 }
 
+error_code sys_spu_thread_group_set_cooperative_victims(ppu_thread& ppu, u32 id, u32 victims)
+{
+	sys_spu.todo("sys_spu_thread_group_set_cooperative_victims(id=0x%x, victims=0x%x)", id, victims);
+
+	const auto group = idm::get<lv2_spu_group>(id);
+
+	if (!group)
+	{
+		return CELL_ESRCH;
+	}
+
+	semaphore_lock lock(group->mutex);
+
+	if (group->run_state < SPU_THREAD_GROUP_STATUS_INITIALIZED)
+	{
+		return CELL_ESTAT;
+	}
+
+	for (u32 i = 0; i < 32; i++)
+	{
+		if (victims&(1 << i))
+		{
+			while(group->threads[i]->status == SPU_STATUS_RUNNING)
+			{
+				lv2_obj::sleep(ppu,10);
+			}
+		}
+	}
+
+	return CELL_OK;
+}
+
 error_code sys_spu_thread_group_disconnect_event_all_threads(u32 id, u8 spup)
 {
 	sys_spu.warning("sys_spu_thread_group_disconnect_event_all_threads(id=0x%x, spup=%d)", id, spup);

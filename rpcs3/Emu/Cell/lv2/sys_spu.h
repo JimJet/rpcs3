@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "sys_event.h"
 
@@ -219,6 +219,7 @@ error_code sys_spu_thread_group_get_priority(u32 id, vm::ps3::ptr<s32> priority)
 error_code sys_spu_thread_group_connect_event(u32 id, u32 eq, u32 et);
 error_code sys_spu_thread_group_disconnect_event(u32 id, u32 et);
 error_code sys_spu_thread_group_connect_event_all_threads(u32 id, u32 eq_id, u64 req, vm::ps3::ptr<u8> spup);
+error_code sys_spu_thread_group_set_cooperative_victims(ppu_thread& ppu, u32 id, u32 victims);
 error_code sys_spu_thread_group_disconnect_event_all_threads(u32 id, u8 spup);
 error_code sys_spu_thread_write_ls(u32 id, u32 address, u64 value, u32 type);
 error_code sys_spu_thread_read_ls(u32 id, u32 address, vm::ps3::ptr<u64> value, u32 type);
