@@ -1166,9 +1166,9 @@ error_code sys_fs_chown(vm::cptr<char> path, s32 uid, s32 gid)
 	return CELL_OK;
 }
 
-error_code sys_fs_disk_free(vm::ps3::cptr<char> path, vm::ptr<u32> sizelow, vm::ptr<u32> sizehigh)
+error_code sys_fs_disk_free(vm::ps3::cptr<char> path, vm::ptr<u64> total_free, vm::ptr<u64> avail_free)
 {
-	sys_fs.warning("sys_fs_disk_free(path=%s sizelow=*0x%x sizehigh=*0x%x)", path, sizelow, sizehigh);
+	sys_fs.warning("sys_fs_disk_free(path=%s total_free=*0x%x avail_free=*0x%x)", path, total_free, avail_free);
 
 	fs::device_stat info;
 	if (!fs::statfs(vfs::get(path.get_ptr()), info))
@@ -1182,8 +1182,8 @@ error_code sys_fs_disk_free(vm::ps3::cptr<char> path, vm::ptr<u32> sizelow, vm::
 		return CELL_EIO;  // ???
 	}
 
-	*sizehigh = (u32)(info.avail_free >> 32);
-	*sizelow = (u32)(info.avail_free & 0xFFFFFFFF);
+	*total_free = info.total_free;
+	*avail_free = info.avail_free;
 
 	return CELL_OK;
 }
