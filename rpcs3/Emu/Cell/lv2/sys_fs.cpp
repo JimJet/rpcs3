@@ -1182,8 +1182,8 @@ error_code sys_fs_disk_free(vm::ps3::cptr<char> path, vm::ptr<u64> total_free, v
 		return CELL_EIO;  // ???
 	}
 
-	*total_free = info.total_free;
-	*avail_free = info.avail_free;
+	*total_free = info.total_free; 
+	*avail_free = info.avail_free; //Only value used by cellFsGetFreeSize
 
 	return CELL_OK;
 }
