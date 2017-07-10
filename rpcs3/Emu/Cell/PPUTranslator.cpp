@@ -1,4 +1,4 @@
-﻿#ifdef LLVM_AVAILABLE
+#ifdef LLVM_AVAILABLE
 
 #include "PPUTranslator.h"
 #include "PPUThread.h"
