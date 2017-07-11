@@ -147,7 +147,6 @@ DWORD xinput_pad_handler::ThreadProcedure()
 		XINPUT_STATE state;
 		DWORD result;
 		DWORD online = 0;
-		u32 logstuff;
 
 		for (DWORD i = 0; i != m_pads.size(); ++i)
 		{
