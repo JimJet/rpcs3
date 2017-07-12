@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "utils.h"
 #include "aes.h"
 #include "sha1.h"
@@ -228,45 +228,51 @@ bool pkg_install(const fs::file& pkg_f, const std::string& dir, atomic_t<double>
 
 			const bool did_overwrite = fs::is_file(path);
 
-			if (fs::file out{ path, fs::rewrite })
+			if (did_overwrite && entry.type&PKG_FILE_ENTRY_OVERWRITE)
 			{
-				for (u64 pos = 0; pos < entry.file_size; pos += BUF_SIZE)
+				if (fs::file out{ path, fs::rewrite })
 				{
-					const u64 block_size = std::min<u64>(BUF_SIZE, entry.file_size - pos);
-
-					if (decrypt(entry.file_offset + pos, block_size, is_psp ? PKG_AES_KEY2 : dec_key.data()) != block_size)
+					for (u64 pos = 0; pos < entry.file_size; pos += BUF_SIZE)
 					{
-						LOG_ERROR(LOADER, "Failed to extract file %s", path);
-						break;
+						const u64 block_size = std::min<u64>(BUF_SIZE, entry.file_size - pos);
+
+						if (decrypt(entry.file_offset + pos, block_size, is_psp ? PKG_AES_KEY2 : dec_key.data()) != block_size)
+						{
+							LOG_ERROR(LOADER, "Failed to extract file %s", path);
+							break;
+						}
+
+						if (out.write(buf.get(), block_size) != block_size)
+						{
+							LOG_ERROR(LOADER, "Failed to write file %s", path);
+							break;
+						}
+
+						if (sync.fetch_add((block_size + 0.0) / header.data_size) < 0.)
+						{
+							LOG_ERROR(LOADER, "Package installation cancelled: %s", dir);
+							return false;
+						}
 					}
 
-					if (out.write(buf.get(), block_size) != block_size)
+					if (did_overwrite)
 					{
-						LOG_ERROR(LOADER, "Failed to write file %s", path);
-						break;
+						LOG_WARNING(LOADER, "Overwritten file %s", name);
 					}
-
-					if (sync.fetch_add((block_size + 0.0) / header.data_size) < 0.)
+					else
 					{
-						LOG_ERROR(LOADER, "Package installation cancelled: %s", dir);
-						return false;
+						LOG_NOTICE(LOADER, "Created file %s", name);
 					}
-				}
-
-				if (did_overwrite)
-				{
-					LOG_WARNING(LOADER, "Overwritten file %s", name);
 				}
 				else
 				{
-					LOG_NOTICE(LOADER, "Created file %s", name);
+					LOG_ERROR(LOADER, "Failed to create file %s", path);
 				}
 			}
 			else
 			{
-				LOG_ERROR(LOADER, "Failed to create file %s", path);
+				LOG_NOTICE(LOADER, "Didn't overwrite %s", name);
 			}
-
 			break;
 		}
 
