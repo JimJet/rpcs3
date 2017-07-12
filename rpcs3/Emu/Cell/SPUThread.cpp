@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Utilities/lockless.h"
 #include "Emu/Memory/Memory.h"
 #include "Emu/System.h"
@@ -205,8 +205,7 @@ void SPUThread::cpu_init()
 	ch_out_mbox.data.store({});
 	ch_out_intr_mbox.data.store({});
 
-	//Now set in sys_spu_thread_initialize
-	//snr_config = 0;
+	snr_config = 0;
 
 	ch_snr1.data.store({});
 	ch_snr2.data.store({});
