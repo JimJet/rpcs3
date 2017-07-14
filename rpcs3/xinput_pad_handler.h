@@ -1,4 +1,4 @@
-#ifndef X_INPUT_PAD_HANDLER
+﻿#ifndef X_INPUT_PAD_HANDLER
 #define X_INPUT_PAD_HANDLER
 
 #include "Emu/Io/PadHandler.h"
@@ -17,10 +17,11 @@ public:
 
 private:
 	typedef void (WINAPI * PFN_XINPUTENABLE)(BOOL);
-	typedef DWORD (WINAPI * PFN_XINPUTGETSTATE)(DWORD, XINPUT_STATE *);
-	typedef DWORD (WINAPI * PFN_XINPUTSETSTATE)(DWORD, XINPUT_VIBRATION *);
+	typedef DWORD(WINAPI * PFN_XINPUTGETSTATE)(DWORD, XINPUT_STATE *);
+	typedef DWORD(WINAPI * PFN_XINPUTSETSTATE)(DWORD, XINPUT_VIBRATION *);
 
 private:
+	std::tuple<u16, u16> ConvertToSquirclePoint(u16 inX, u16 inY);
 	DWORD ThreadProcedure();
 	static DWORD WINAPI ThreadProcProxy(LPVOID parameter);
 
