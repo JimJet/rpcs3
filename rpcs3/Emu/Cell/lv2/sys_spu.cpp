@@ -113,7 +113,48 @@ void sys_spu_image::free()
 
 void sys_spu_image::dump_to_file()
 {
-	
+	//Calculate hash
+	sha1_context ctx;
+	u8 output[20];
+
+
+	sha1_starts(&ctx);
+	sha1_update(&ctx, reinterpret_cast<const u8*>(&nsegs), sizeof(s32));
+	for (int i = 0; i < nsegs; i++)
+	{
+		sha1_update(&ctx, reinterpret_cast<const u8*>(&segs[i]), sizeof(sys_spu_segment));
+		sha1_update(&ctx, reinterpret_cast<const u8*>(vm::base(segs[i].addr)), segs[i].size);
+	}
+	sha1_finish(&ctx, output);
+
+	std::string hash("spu-");
+	for (u8 x : output) fmt::append(hash, "%02x", x);
+	hash.append(".spu");
+
+	LOG_NOTICE(LOADER, "SPU image: %s", hash);
+
+	std::string path(fs::get_config_dir() + "data/" + Emu.GetTitleID() + "/" + hash);
+
+	if (fs::is_file(path)) return;
+
+	if (fs::file out{ path, fs::rewrite })
+	{
+		out.write("SPU", 3);
+		for (int i = 0; i < nsegs; i++)
+		{
+			out.write(&segs[i], sizeof(sys_spu_segment));
+		}
+		for (int i = 0; i < nsegs; i++)
+		{
+			out.write(vm::base(segs[i].addr), segs[i].size);
+		}
+	}
+	else
+	{
+		LOG_ERROR(LOADER, "Error creating %s", path);
+	}
+
+
 
 }
 
