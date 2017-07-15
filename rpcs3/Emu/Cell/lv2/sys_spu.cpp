@@ -111,6 +111,12 @@ void sys_spu_image::free()
 	}
 }
 
+void sys_spu_image::dump_to_file()
+{
+	
+
+}
+
 void sys_spu_image::deploy(u32 loc)
 {
 	for (int i = 0; i < nsegs; i++)
