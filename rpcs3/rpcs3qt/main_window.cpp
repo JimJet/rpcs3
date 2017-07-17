@@ -41,6 +41,7 @@
 #include "Utilities/StrUtil.h"
 
 #include "rpcs3_version.h"
+#include "system_info.h"
 
 #include "ui_main_window.h"
 
@@ -91,6 +92,13 @@ void main_window::Init()
 	ui->toolBar->addSeparator();
 	ui->toolBar->addWidget(ui->searchBar);
 
+	// for highdpi resize toolbar icons and height dynamically
+	// choose factors to mimic Gui-Design in main_window.ui
+	const int toolBarHeight = menuBar()->sizeHint().height() * 2;
+	ui->toolBar->setIconSize(QSize(toolBarHeight, toolBarHeight));
+	ui->sizeSliderContainer->setFixedWidth(toolBarHeight * 5);
+	ui->sizeSlider->setFixedHeight(toolBarHeight * 0.625f);
+
 	CreateActions();
 	CreateDockWindows();
 
@@ -103,6 +111,15 @@ void main_window::Init()
 
 	RequestGlobalStylesheetChange(guiSettings->GetCurrentStylesheetPath());
 	ConfigureGuiFromSettings(true);
+	
+	if (!System_Info::getCPU().second)
+	{
+		QMessageBox::critical(this, "SSSE3 Error (with three S, not two)",
+			"Your system does not meet the minimum requirements needed to run RPCS3.\n"
+			"Your CPU does not support SSSE3 (with three S, not two).\n"
+			"\n"
+			"No games will run and RPCS3 will crash if you try.");
+	}
 }
 
 void main_window::CreateThumbnailToolbar()
