@@ -140,26 +140,31 @@ void sys_spu_image::dump_to_file()
 	if (fs::file out{ path, fs::rewrite })
 	{
 		out.write("SPU", 3);
+
+		out.write(&type, sizeof(u32));
+		out.write(&entry_point, sizeof(u32));
+		out.write(&nsegs, sizeof(s32));
+
 		for (int i = 0; i < nsegs; i++)
 		{
 			out.write(&segs[i], sizeof(sys_spu_segment));
 		}
 		for (int i = 0; i < nsegs; i++)
 		{
-			out.write(vm::base(segs[i].addr), segs[i].size);
+			if(segs[i].type== SYS_SPU_SEGMENT_TYPE_COPY) out.write(vm::base(segs[i].addr), segs[i].size);
 		}
+		LOG_SUCCESS(LOADER, "Saved spu program to %s", hash);
 	}
 	else
 	{
 		LOG_ERROR(LOADER, "Error creating %s", path);
 	}
-
-
-
 }
 
 void sys_spu_image::deploy(u32 loc)
 {
+	dump_to_file();
+
 	for (int i = 0; i < nsegs; i++)
 	{
 		auto& seg = segs[i];
