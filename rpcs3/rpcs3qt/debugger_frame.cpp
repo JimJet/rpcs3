@@ -149,11 +149,6 @@ u32 debugger_frame::CentrePc(u32 pc) const
 
 void debugger_frame::UpdateUI()
 {
-	if (Emu.IsStopped())
-	{
-		g_breakpoints.clear();
-	}
-
 	UpdateUnitList();
 
 	if (m_noThreadSelected) return;
