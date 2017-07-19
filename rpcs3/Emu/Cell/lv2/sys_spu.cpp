@@ -84,29 +84,14 @@ void sys_spu_image::free()
 	}
 }
 
-void sys_spu_image::dump_to_file()
+void sys_spu_image::dump_to_file(std::string hash)
 {
-	//Calculate hash
-	sha1_context ctx;
-	u8 output[20];
-
-
-	sha1_starts(&ctx);
-	sha1_update(&ctx, reinterpret_cast<const u8*>(&nsegs), sizeof(s32));
-	for (int i = 0; i < nsegs; i++)
-	{
-		sha1_update(&ctx, reinterpret_cast<const u8*>(&segs[i]), sizeof(sys_spu_segment));
-		sha1_update(&ctx, reinterpret_cast<const u8*>(vm::base(segs[i].addr)), segs[i].size);
-	}
-	sha1_finish(&ctx, output);
-
-	std::string hash("spu-");
-	for (u8 x : output) fmt::append(hash, "%02x", x);
+	std::string spufilename = hash;
 	hash.append(".spu");
 
-	LOG_NOTICE(LOADER, "SPU image: %s", hash);
+	LOG_NOTICE(LOADER, "SPU image: %s", spufilename);
 
-	std::string path(fs::get_config_dir() + "data/" + Emu.GetTitleID() + "/" + hash);
+	std::string path(fs::get_config_dir() + "data/" + Emu.GetTitleID() + "/" + spufilename);
 
 	if (fs::is_file(path)) return;
 
@@ -136,7 +121,6 @@ void sys_spu_image::dump_to_file()
 
 void sys_spu_image::deploy(u32 loc)
 {
-	dump_to_file();
 	// Segment info dump
 	std::string dump;
 
@@ -184,6 +168,8 @@ void sys_spu_image::deploy(u32 loc)
 		hash[4 + i * 2] = pal[sha1_hash[i] >> 4];
 		hash[5 + i * 2] = pal[sha1_hash[i] & 15];
 	}
+
+	dump_to_file(hash);
 
 	// Apply the patch
 	auto applied = fxm::check_unlocked<patch_engine>()->apply(hash, vm::g_base_addr + loc);
