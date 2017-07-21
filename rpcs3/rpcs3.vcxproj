@@ -206,7 +206,7 @@
       <LinkIncremental>false</LinkIncremental>
       <OutputFile>$(OutDir)\rpcs3.exe</OutputFile>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <BaseAddress>0x10000</BaseAddress>
     </Link>
