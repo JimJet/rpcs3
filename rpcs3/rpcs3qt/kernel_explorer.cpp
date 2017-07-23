@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Emu/Memory/Memory.h"
 #include "Emu/System.h"
 
@@ -165,8 +165,8 @@ void kernel_explorer::Update()
 		{
 			auto& rw = static_cast<lv2_rwlock&>(obj);
 			const s64 val = rw.owner;
-			l_addTreeChild(node, qstr(fmt::format("RW Lock: ID = 0x%08x \"%s\", Owner = 0x%x(%d), Rq = %zu, Wq = %zu", id, +name64(rw.name),
-				std::max<s64>(0, val >> 1), -std::min<s64>(0, val >> 1), rw.rq.size(), rw.wq.size())));
+			l_addTreeChild(node, qstr(fmt::format("RW Lock: ID = 0x%08x \"%s\", Owner = 0x%x(%d), Rq = %zu, Wq = %zu, Lock=%d", id, +name64(rw.name),
+				std::max<s64>(0, val >> 1), -std::min<s64>(0, val >> 1), rw.rq.size(), rw.wq.size(), val&1)));
 			break;
 		}
 		case SYS_INTR_TAG_OBJECT:

@@ -63,9 +63,11 @@ std::string vfs::get(const std::string& vpath, vfs::type _type)
 	if (!isFile) final_path.append("/");
 	if (final_path.empty()) final_path = "/";
 
+	LOG_ERROR(LOADER, "Input: %s Output: %s", vpath, final_path);
+
 	std::smatch match;
 
-	if (!std::regex_match(final_path, match, _type == type::ps3 ? s_regex_ps3 : s_regex_psv))
+	if (!std::regex_match(vpath, match, _type == type::ps3 ? s_regex_ps3 : s_regex_psv))
 	{
 		LOG_WARNING(GENERAL, "vfs::get(): invalid input: %s", vpath);
 		return{};
