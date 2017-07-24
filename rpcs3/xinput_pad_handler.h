@@ -8,7 +8,7 @@
 
 struct xinput_config final : cfg::node
 {
-	const std::string cfg_name = fs::get_config_dir() + "/xinput_config.yml";
+	const std::string cfg_name = fs::get_config_dir() + "/config_xinput.yml";
 
 	cfg::_int<0, 1000000> lstickdeadzone{ this, "Left Stick Deadzone", 7849 };
 	cfg::_int<0, 1000000> rstickdeadzone{ this, "Right Stick Deadzone", 8689 };
