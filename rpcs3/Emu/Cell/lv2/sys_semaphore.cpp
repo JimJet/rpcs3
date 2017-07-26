@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Emu/Memory/Memory.h"
 #include "Emu/System.h"
 #include "Emu/IdManager.h"
@@ -15,7 +15,7 @@ extern u64 get_system_time();
 
 error_code sys_semaphore_create(vm::ptr<u32> sem_id, vm::ptr<sys_semaphore_attribute_t> attr, s32 initial_val, s32 max_val)
 {
-	sys_semaphore.warning("sys_semaphore_create(sem_id=*0x%x, attr=*0x%x, initial_val=%d, max_val=%d)", sem_id, attr, initial_val, max_val);
+	sys_semaphore.warning("sys_semaphore_create(sem_id=*0x%x[0x%x], attr=*0x%x, initial_val=%d, max_val=%d)", sem_id, *sem_id, attr, initial_val, max_val);
 
 	if (!sem_id || !attr)
 	{
