@@ -1,4 +1,4 @@
-#include "game_list_frame.h"
+﻿#include "game_list_frame.h"
 
 #include "settings_dialog.h"
 #include "table_item_delegate.h"
@@ -476,8 +476,6 @@ void game_list_frame::Refresh(bool fromDrive)
 		gameList->verticalHeader()->setMaximumSectionSize(m_Icon_Size.height());
 		gameList->resizeRowsToContents();
 		gameList->resizeColumnToContents(0);
-		gameList->scrollToTop();    // fix drunk scroll behaviour (may still not be perfect)
-		gameList->scrollToBottom(); // fix drunk scroll behaviour (may still not be perfect)
 		gameList->scrollTo(gameList->currentIndex(), QAbstractItemView::PositionAtCenter);
 	}
 	else
@@ -842,9 +840,7 @@ int game_list_frame::PopulateGameList()
 
 	std::string selected_item = CurrentSelectionIconPath();
 
-	// Hack to delete everything without removing the headers.
-	gameList->setRowCount(0);
-
+	gameList->clearContents();
 	gameList->setRowCount(m_game_data.size());
 
 	auto l_GetItem = [](const std::string& text)
