@@ -401,6 +401,12 @@ settings_dialog::settings_dialog(std::shared_ptr<gui_settings> xSettings, const 
 	xemu_settings->EnhanceCheckBox(ui->stretchToDisplayArea, emu_settings::StretchToDisplayArea);
 	ui->stretchToDisplayArea->setToolTip(json_gpu_main["stretchToDisplayArea"].toString());
 
+	xemu_settings->EnhanceCheckBox(ui->scrictModeRendering, emu_settings::StrictRenderingMode);
+	ui->scrictModeRendering->setToolTip(json_gpu_main["scrictModeRendering"].toString());
+
+	xemu_settings->EnhanceCheckBox(ui->disableVertexCache, emu_settings::DisableVertexCache);
+	ui->disableVertexCache->setToolTip(json_gpu_main["disableVertexCache"].toString());
+
 	// Graphics Adapter
 	QStringList D3D12Adapters = r_Creator.D3D12Adapters;
 	QStringList vulkanAdapters = r_Creator.vulkanAdapters;
@@ -668,6 +674,10 @@ settings_dialog::settings_dialog(std::shared_ptr<gui_settings> xSettings, const 
 	ui->combo_stylesheets->setToolTip(json_emu_gui["stylesheets"].toString());
 
 	// Checkboxes
+		
+	ui->gs_resizeOnBoot->setToolTip(json_emu_misc["gs_resizeOnBoot"].toString());
+		
+	ui->gs_disableMouse->setToolTip(json_emu_misc["gs_disableMouse"].toString());
 
 	ui->cb_show_welcome->setToolTip(json_emu_gui["show_welcome"].toString());
 
@@ -771,6 +781,9 @@ settings_dialog::settings_dialog(std::shared_ptr<gui_settings> xSettings, const 
 		addColoredIcon(ui->pb_gl_tool_icon_color, xgui_settings->GetValue(GUI::gl_toolIconColor).value<QColor>(), QIcon(":/Icons/home_blue.png"), GUI::gl_tool_icon_color);
 		addColoredIcon(ui->pb_tool_icon_color, xgui_settings->GetValue(GUI::mw_toolIconColor).value<QColor>(), QIcon(":/Icons/stop.png"), GUI::mw_tool_icon_color);
 
+		ui->gs_disableMouse->setChecked(xgui_settings->GetValue(GUI::gs_disableMouse).toBool());
+		connect(ui->gs_disableMouse, &QCheckBox::clicked, [=](bool val) { xgui_settings->SetValue(GUI::gs_disableMouse, val); });
+
 		bool enableButtons = xgui_settings->GetValue(GUI::gs_resize).toBool();
 		ui->gs_resizeOnBoot->setChecked(enableButtons);
 		ui->gs_width->setEnabled(enableButtons);
@@ -818,9 +831,6 @@ settings_dialog::settings_dialog(std::shared_ptr<gui_settings> xSettings, const 
 	// Checkboxes: debug options
 	xemu_settings->EnhanceCheckBox(ui->glLegacyBuffers, emu_settings::LegacyBuffers);
 	ui->glLegacyBuffers->setToolTip(json_debug["glLegacyBuffers"].toString());
-
-	xemu_settings->EnhanceCheckBox(ui->scrictModeRendering, emu_settings::StrictRenderingMode);
-	ui->scrictModeRendering->setToolTip(json_debug["scrictModeRendering"].toString());
 
 	xemu_settings->EnhanceCheckBox(ui->forceHighpZ, emu_settings::ForceHighpZ);
 	ui->forceHighpZ->setToolTip(json_debug["forceHighpZ"].toString());
@@ -955,7 +965,6 @@ void settings_dialog::OnApplyStylesheet()
 
 int settings_dialog::exec()
 {
-	show();
 	for (int i = 0; i < ui->tabWidget->count(); i++)
 	{
 		ui->tabWidget->setCurrentIndex(i);
