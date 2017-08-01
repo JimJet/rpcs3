@@ -1,11 +1,10 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Emu/Memory/Memory.h"
 #include "Emu/System.h"
 #include "Emu/IdManager.h"
 #include "RSXThread.h"
 
 #include "Emu/Cell/PPUCallback.h"
-#include "Emu/Cell/lv2/sys_rsx.h"
 
 #include "Common/BufferUtils.h"
 #include "rsx_methods.h"
@@ -35,69 +34,55 @@ namespace rsx
 
 		switch (location)
 		{
-			case CELL_GCM_CONTEXT_DMA_MEMORY_FRAME_BUFFER:
-			case CELL_GCM_LOCATION_LOCAL:
+		case CELL_GCM_CONTEXT_DMA_MEMORY_FRAME_BUFFER:
+		case CELL_GCM_LOCATION_LOCAL:
+		{
+			// TODO: Don't use unnamed constants like 0xC0000000
+			return 0xC0000000 + offset;
+		}
+
+		case CELL_GCM_CONTEXT_DMA_MEMORY_HOST_BUFFER:
+		case CELL_GCM_LOCATION_MAIN:
+		{
+			if (u32 result = RSXIOMem.RealAddr(offset))
 			{
-				// TODO: Don't use unnamed constants like 0xC0000000
-				return 0xC0000000 + offset;
+				return result;
 			}
 
-			case CELL_GCM_CONTEXT_DMA_MEMORY_HOST_BUFFER:
-			case CELL_GCM_LOCATION_MAIN:
+			fmt::throw_exception("GetAddress(offset=0x%x, location=0x%x): RSXIO memory not mapped" HERE, offset, location);
+		}
+
+		case CELL_GCM_CONTEXT_DMA_REPORT_LOCATION_LOCAL:
+			return 0x40301400 + offset;
+
+		case CELL_GCM_CONTEXT_DMA_REPORT_LOCATION_MAIN:
+		{
+			if (u32 result = RSXIOMem.RealAddr(0x0e000000 + offset))
 			{
-				if (u32 result = RSXIOMem.RealAddr(offset))
-				{
-					return result;
-				}
-
-				fmt::throw_exception("GetAddress(offset=0x%x, location=0x%x): RSXIO memory not mapped" HERE, offset, location);
-
-				//if (fxm::get<GSRender>()->strict_ordering[offset >> 20])
-				//{
-				//	_mm_mfence(); // probably doesn't have any effect on current implementation
-				//}
+				return result;
 			}
 
-			case CELL_GCM_CONTEXT_DMA_REPORT_LOCATION_LOCAL:
-                return 0x40301400 + offset; // not sure if this should be 0x40300000 or offset to the actual reports, lets try reports for now
-				//return 0x100000 + offset; // TODO: Properly implement
+			fmt::throw_exception("GetAddress(offset=0x%x, location=0x%x): RSXIO memory not mapped" HERE, offset, location);
+		}
 
-			case CELL_GCM_CONTEXT_DMA_REPORT_LOCATION_MAIN:
-            {
-                if (u32 result = RSXIOMem.RealAddr(0x0e000000 + offset))
-                {
-                    return result;
-                }
+		case CELL_GCM_CONTEXT_DMA_TO_MEMORY_GET_NOTIFY0:
+			fmt::throw_exception("Unimplemented CELL_GCM_CONTEXT_DMA_TO_MEMORY_GET_NOTIFY0 (offset=0x%x, location=0x%x)" HERE, offset, location);
 
-                fmt::throw_exception("GetAddress(offset=0x%x, location=0x%x): RSXIO memory not mapped" HERE, offset, location);
+		case CELL_GCM_CONTEXT_DMA_NOTIFY_MAIN_0:
+			fmt::throw_exception("Unimplemented CELL_GCM_CONTEXT_DMA_NOTIFY_MAIN_0 (offset=0x%x, location=0x%x)" HERE, offset, location);
 
-                //if (fxm::get<GSRender>()->strict_ordering[offset >> 20])
-                //{
-                //	_mm_mfence(); // probably doesn't have any effect on current implementation
-                //}
-            }
+		case CELL_GCM_CONTEXT_DMA_SEMAPHORE_RW:
+		case CELL_GCM_CONTEXT_DMA_SEMAPHORE_R:
+			return 0x40300000 + offset;
 
-			case CELL_GCM_CONTEXT_DMA_TO_MEMORY_GET_NOTIFY0:
-                fmt::throw_exception("Unimplemented CELL_GCM_CONTEXT_DMA_TO_MEMORY_GET_NOTIFY0 (offset=0x%x, location=0x%x)" HERE, offset, location);
+		case CELL_GCM_CONTEXT_DMA_DEVICE_RW:
+			return 0x40000000 + offset;
 
-			case CELL_GCM_CONTEXT_DMA_NOTIFY_MAIN_0:
-				fmt::throw_exception("Unimplemented CELL_GCM_CONTEXT_DMA_NOTIFY_MAIN_0 (offset=0x%x, location=0x%x)" HERE, offset, location);
+		case CELL_GCM_CONTEXT_DMA_DEVICE_R:
+			return 0x40000000 + offset;
 
-			case CELL_GCM_CONTEXT_DMA_SEMAPHORE_RW:
-			case CELL_GCM_CONTEXT_DMA_SEMAPHORE_R:
-                return 0x40300000 + offset; // this offset also doesnt seem like its right, but it works for now so w/e
-				//return 0x100 + offset; // TODO: Properly implement
-
-			case CELL_GCM_CONTEXT_DMA_DEVICE_RW:
-                return 0x40000000 + offset;
-				//fmt::throw_exception("Unimplemented CELL_GCM_CONTEXT_DMA_DEVICE_RW (offset=0x%x, location=0x%x)" HERE, offset, location);
-
-			case CELL_GCM_CONTEXT_DMA_DEVICE_R:
-                return 0x40000000 + offset;
-				//fmt::throw_exception("Unimplemented CELL_GCM_CONTEXT_DMA_DEVICE_R (offset=0x%x, location=0x%x)" HERE, offset, location);
-
-			default:
-				fmt::throw_exception("Invalid location (offset=0x%x, location=0x%x)" HERE, offset, location);
+		default:
+			fmt::throw_exception("Invalid location (offset=0x%x, location=0x%x)" HERE, offset, location);
 		}
 	}
 
@@ -403,7 +388,7 @@ namespace rsx
 				if (get_system_time() - start_time > vblank_count * 1000000 / 60)
 				{
 					vblank_count++;
-                    sys_rsx_context_attribute(0x55555555, 0xFED, 1, 0, 0, 0);
+					sys_rsx_context_attribute(0x55555555, 0xFED, 1, 0, 0, 0);
 					if (vblank_handler)
 					{
 						intr_thread->cmd_list
@@ -418,8 +403,8 @@ namespace rsx
 
 					continue;
 				}
-                while (Emu.IsPaused())
-                    std::this_thread::sleep_for(10ms);
+				while (Emu.IsPaused())
+					std::this_thread::sleep_for(10ms);
 
 				std::this_thread::sleep_for(1ms); // hack
 			}
@@ -522,7 +507,7 @@ namespace rsx
 				u32 reg = ((cmd & RSX_METHOD_NON_INCREMENT_CMD_MASK) == RSX_METHOD_NON_INCREMENT_CMD) ? first_cmd : first_cmd + i;
 				u32 value = args[i];
 
-				//LOG_WARNING(RSX, "%s(0x%x) = 0x%x", get_method_name(reg).c_str(), reg, value);
+				//LOG_NOTICE(RSX, "%s(0x%x) = 0x%x", get_method_name(reg).c_str(), reg, value);
 
 				method_registers.decode(reg, value);
 
@@ -1088,9 +1073,9 @@ namespace rsx
 		rsx::method_registers.reset();
 	}
 
-	void thread::init(const u32 ioAddress, const u32 ioSize, const u32 ctrlAddress, const u32 localAddress)
+	void thread::init(u32 ioAddress, u32 ioSize, u32 ctrlAddress, u32 localAddress)
 	{
-		ctrl = vm::_ptr<CellGcmControl>(ctrlAddress);
+		ctrl = vm::_ptr<RsxDmaControl>(ctrlAddress);
 		this->ioAddress = ioAddress;
 		this->ioSize = ioSize;
 		local_mem_addr = localAddress;

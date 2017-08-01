@@ -1198,7 +1198,7 @@ void ppu_load_exec(const ppu_exec_object& elf)
 			{ "cellFont", "libfont.sprx" },
 			{ "cellFontFT", "libfontFT.sprx" },
 			{ "cellFontFT", "libfreetype.sprx" },
-            { "cellGcmSys", "libgcm_sys.sprx"},
+			{ "cellGcmSys", "libgcm_sys.sprx" },
 			{ "cellGifDec", "libgifdec.sprx" },
 			{ "cellGifDec", "libsre.sprx" },
 			{ "cellJpgDec", "libjpgdec.sprx" },
@@ -1341,7 +1341,7 @@ void ppu_load_exec(const ppu_exec_object& elf)
 	g_ps3_sdk_version = sdk_version;
 
 	// Initialize process arguments
-	std::initializer_list<std::string> args = { Emu.GetPath()/*, "-debug"*/ };
+	std::initializer_list<std::string> args = { Emu.GetPath()/*, "-emu"s*/ };
 
 	auto argv = vm::ptr<u64>::make(vm::alloc(SIZE_32(u64) * ::size32(args), vm::main));
 	auto envp = vm::ptr<u64>::make(vm::alloc(::align(SIZE_32(u64), 0x10), vm::main));
