@@ -305,7 +305,8 @@ namespace sys_net
 		saddr.sin_family = addr->sa_family;
 
 		libnet.warning("connecting to %s on port %d", ::inet_ntoa(saddr.sin_addr), ntohs(saddr.sin_port));
-		s32 ret = ::connect(sock->s, (const ::sockaddr*)&saddr, addrlen);
+		//s32 ret = ::connect(sock->s, (const ::sockaddr*)&saddr, addrlen);
+		s32 ret = SOCKET_ERROR;
 		
 		if (ret != 0)
 		{
