@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Emu/IdManager.h"
 #include "Emu/System.h"
 #include "Emu/Cell/PPUModule.h"
@@ -52,7 +52,7 @@ error_code sys_lwcond_destroy(vm::ptr<sys_lwcond_t> lwcond)
 
 error_code sys_lwcond_signal(ppu_thread& ppu, vm::ptr<sys_lwcond_t> lwcond)
 {
-	sysPrxForUser.trace("sys_lwcond_signal(lwcond=*0x%x)", lwcond);
+	sysPrxForUser.trace("sys_lwcond_signal(lwcond=*0x%x[0x%x])", lwcond, lwcond->lwcond_queue);
 
 	if (g_avoid_lwm)
 	{
@@ -250,7 +250,7 @@ error_code sys_lwcond_signal_to(ppu_thread& ppu, vm::ptr<sys_lwcond_t> lwcond, u
 
 error_code sys_lwcond_wait(ppu_thread& ppu, vm::ptr<sys_lwcond_t> lwcond, u64 timeout)
 {
-	sysPrxForUser.trace("sys_lwcond_wait(lwcond=*0x%x, timeout=0x%llx)", lwcond, timeout);
+	sysPrxForUser.trace("sys_lwcond_wait(lwcond=*0x%x[0x%x], timeout=0x%llx)", lwcond, lwcond->lwcond_queue, timeout);
 
 	if (g_avoid_lwm)
 	{
