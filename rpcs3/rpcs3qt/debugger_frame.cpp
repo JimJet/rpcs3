@@ -45,8 +45,10 @@ debugger_frame::debugger_frame(std::shared_ptr<gui_settings> settings, QWidget *
 	m_btn_capture = new QPushButton(tr("Capture"), this);
 	m_btn_step = new QPushButton(tr("Step"), this);
 	m_btn_run = new QPushButton(Run, this);
+	m_btn_dmpspu = new QPushButton(tr("Dump SPU"), this);
 
 	EnableButtons(!Emu.IsStopped());
+	m_btn_dmpspu->setEnabled(false);
 
 	hbox_b_main->addWidget(m_go_to_addr);
 	hbox_b_main->addWidget(m_go_to_pc);
@@ -54,6 +56,7 @@ debugger_frame::debugger_frame(std::shared_ptr<gui_settings> settings, QWidget *
 	hbox_b_main->addWidget(m_btn_step);
 	hbox_b_main->addWidget(m_btn_run);
 	hbox_b_main->addWidget(m_choice_units);
+	hbox_b_main->addWidget(m_btn_dmpspu);
 	hbox_b_main->addStretch();
 
 	//Registers
@@ -105,6 +108,7 @@ debugger_frame::debugger_frame(std::shared_ptr<gui_settings> settings, QWidget *
 		}
 		UpdateUI();
 	});
+	connect(m_btn_dmpspu, &QAbstractButton::clicked, this, &debugger_frame::DumpSpu);
 	connect(m_choice_units, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this, &debugger_frame::UpdateUI);
 	connect(m_choice_units, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this, &debugger_frame::OnSelectUnit);
 	connect(this, &QDockWidget::visibilityChanged, this, &debugger_frame::EnableUpdateTimer);
@@ -196,6 +200,7 @@ void debugger_frame::UpdateUI()
 
 			m_btn_run->setEnabled(false);
 			m_btn_step->setEnabled(false);
+			m_btn_dmpspu->setEnabled(false);
 		}
 	}
 	else
@@ -288,21 +293,25 @@ void debugger_frame::OnSelectUnit()
 		{
 			m_disasm = std::make_unique<PPUDisAsm>(CPUDisAsm_InterpreterMode);
 			cpu = ppu.ptr;
+			m_btn_dmpspu->setEnabled(false);
 		}
 		else if (auto spu1 = idm::select<SPUThread>(on_select))
 		{
 			m_disasm = std::make_unique<SPUDisAsm>(CPUDisAsm_InterpreterMode);
 			cpu = spu1.ptr;
+			m_btn_dmpspu->setEnabled(true);
 		}
 		else if (auto rspu = idm::select<RawSPUThread>(on_select))
 		{
 			m_disasm = std::make_unique<SPUDisAsm>(CPUDisAsm_InterpreterMode);
 			cpu = rspu.ptr;
+			m_btn_dmpspu->setEnabled(false);
 		}
 		else if (auto arm = idm::select<ARMv7Thread>(on_select))
 		{
 			m_disasm = std::make_unique<ARMv7DisAsm>(CPUDisAsm_InterpreterMode);
 			cpu = arm.ptr;
+			m_btn_dmpspu->setEnabled(false);
 		}
 	}
 
@@ -438,6 +447,28 @@ void debugger_frame::DoStep()
 		}
 	}
 	UpdateUI();
+}
+
+#include "Crypto/sha1.h"
+
+void debugger_frame::DumpSpu()
+{
+	const auto cpu = static_cast<SPUThread *>(this->cpu.lock().get());
+
+	if (cpu)
+	{
+		sha1_context sha;
+		sha1_starts(&sha);
+		u8 sha1_hash[20];
+
+		sha1_update(&sha, (uchar *)vm::g_base_addr + cpu->offset, 256 * 1024);
+
+		std::string filename;
+		filename = cpu->get_name();
+		filename.append(".SPU");
+
+
+	}
 }
 
 void debugger_frame::EnableUpdateTimer(bool enable)

@@ -115,7 +115,6 @@ struct sys_spu_image
 	void load(const fs::file& stream);
 	void free();
 	void deploy(u32 loc);
-	void dump_to_file(std::string hash);
 };
 
 enum : u32

@@ -84,41 +84,6 @@ void sys_spu_image::free()
 	}
 }
 
-void sys_spu_image::dump_to_file(std::string hash)
-{
-	std::string spufilename = hash;
-	hash.append(".spu");
-
-	LOG_NOTICE(LOADER, "SPU image: %s", spufilename);
-
-	std::string path(fs::get_config_dir() + "data/" + Emu.GetTitleID() + "/" + spufilename);
-
-	if (fs::is_file(path)) return;
-
-	if (fs::file out{ path, fs::rewrite })
-	{
-		out.write("SPU", 3);
-
-		out.write(&type, sizeof(u32));
-		out.write(&entry_point, sizeof(u32));
-		out.write(&nsegs, sizeof(s32));
-
-		for (int i = 0; i < nsegs; i++)
-		{
-			out.write(&segs[i], sizeof(sys_spu_segment));
-		}
-		for (int i = 0; i < nsegs; i++)
-		{
-			if(segs[i].type== SYS_SPU_SEGMENT_TYPE_COPY) out.write(vm::base(segs[i].addr), segs[i].size);
-		}
-		LOG_SUCCESS(LOADER, "Saved spu program to %s", hash);
-	}
-	else
-	{
-		LOG_ERROR(LOADER, "Error creating %s", path);
-	}
-}
-
 void sys_spu_image::deploy(u32 loc)
 {
 	// Segment info dump
@@ -168,8 +133,6 @@ void sys_spu_image::deploy(u32 loc)
 		hash[4 + i * 2] = pal[sha1_hash[i] >> 4];
 		hash[5 + i * 2] = pal[sha1_hash[i] & 15];
 	}
-
-	dump_to_file(hash);
 
 	// Apply the patch
 	auto applied = fxm::check_unlocked<patch_engine>()->apply(hash, vm::g_base_addr + loc);
@@ -240,6 +203,80 @@ error_code _sys_raw_spu_image_load(vm::ptr<sys_spu_image> img, u32 ptr, u32 arg3
 	fmt::throw_exception("Unimlemented syscall: _sys_raw_spu_image_load");
 }
 
+void dump_spu_to_file(sys_spu_image &daimg)
+{
+	// SPU hash
+	sha1_context sha;
+	sha1_starts(&sha);
+	u8 sha1_hash[20];
+
+	for (int i = 0; i < daimg.nsegs; i++)
+	{
+		auto& seg = daimg.segs[i];
+
+		// Hash big-endian values
+		sha1_update(&sha, (uchar*)&seg.type, sizeof(seg.type));
+		sha1_update(&sha, (uchar*)&seg.size, sizeof(seg.size));
+
+		if (seg.type == SYS_SPU_SEGMENT_TYPE_COPY)
+		{
+			sha1_update(&sha, (uchar*)&seg.ls, sizeof(seg.ls));
+			sha1_update(&sha, vm::g_base_addr + seg.addr, seg.size);
+		}
+		else if (seg.type == SYS_SPU_SEGMENT_TYPE_FILL)
+		{
+			sha1_update(&sha, (uchar*)&seg.ls, sizeof(seg.ls));
+			sha1_update(&sha, (uchar*)&seg.addr, sizeof(seg.addr));
+		}
+	}
+
+	sha1_finish(&sha, sha1_hash);
+
+	// Format patch name
+	std::string hash("SPU-0000000000000000000000000000000000000000");
+	for (u32 i = 0; i < sizeof(sha1_hash); i++)
+	{
+		constexpr auto pal = "0123456789abcdef";
+		hash[4 + i * 2] = pal[sha1_hash[i] >> 4];
+		hash[5 + i * 2] = pal[sha1_hash[i] & 15];
+	}
+
+	std::string spufilename = hash;
+	spufilename.append(".spu");
+
+	std::string path(fs::get_config_dir() + "data/" + Emu.GetTitleID() + "/" + spufilename);
+
+	if (fs::is_file(path))
+	{
+		LOG_NOTICE(LOADER, "Image %s already exists", spufilename);
+		return;
+	}
+
+	if (fs::file out{ path, fs::rewrite })
+	{
+		out.write("SPU", 3);
+
+		out.write(&daimg.type, sizeof(u32));
+		out.write(&daimg.entry_point, sizeof(u32));
+		out.write(&daimg.nsegs, sizeof(s32));
+
+		for (int i = 0; i < daimg.nsegs; i++)
+		{
+			out.write(&daimg.segs[i], sizeof(sys_spu_segment));
+		}
+		for (int i = 0; i < daimg.nsegs; i++)
+		{
+			if (daimg.segs[i].type == SYS_SPU_SEGMENT_TYPE_COPY) out.write(vm::base(daimg.segs[i].addr), daimg.segs[i].size);
+		}
+		LOG_SUCCESS(LOADER, "Saved spu program to %s", spufilename);
+	}
+	else
+	{
+		LOG_ERROR(LOADER, "Error creating %s", path);
+	}
+}
+
+
 error_code sys_spu_thread_initialize(vm::ptr<u32> thread, u32 group_id, u32 spu_num, vm::ptr<sys_spu_image> img, vm::ptr<sys_spu_thread_attribute> attr, vm::ptr<sys_spu_thread_argument> arg)
 {
 	sys_spu.warning("sys_spu_thread_initialize(thread=*0x%x, group=0x%x, spu_num=%d, img=*0x%x, attr=*0x%x, arg=*0x%x)", thread, group_id, spu_num, img, attr, arg);
@@ -285,6 +322,9 @@ error_code sys_spu_thread_initialize(vm::ptr<u32> thread, u32 group_id, u32 spu_
 	{
 		group->run_state = SPU_THREAD_GROUP_STATUS_INITIALIZED;
 	}
+
+	//Dump image to file
+	dump_spu_to_file(group->imgs[spu_num]);
 
 	return CELL_OK;
 }
@@ -1236,6 +1276,8 @@ error_code sys_spu_thread_group_connect_event_all_threads(u32 id, u32 eq, u64 re
 			break;
 		}
 	}
+
+	sys_spu.warning("Using port %d", port);
 
 	if (port == 64)
 	{
