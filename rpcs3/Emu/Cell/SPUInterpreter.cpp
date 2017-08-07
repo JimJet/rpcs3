@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Emu/Memory/Memory.h"
 #include "Emu/System.h"
 
@@ -1066,7 +1066,15 @@ void spu_interpreter::BRNZ(SPUThread& spu, spu_opcode_t op)
 {
 	if (spu.gpr[op.rt]._u32[3] != 0)
 	{
+		if (spu.id == 0x2000005)
+		{
+			LOG_ERROR(LOADER, "BRNZ branching at 0x%x", spu.pc);
+		}
 		spu.pc = spu_branch_target(spu.pc, op.i16) - 4;
+	}
+	else
+	{
+		if (spu.id == 0x2000005) LOG_ERROR(LOADER, "BRNZ not branching at 0x%x", spu.pc);
 	}
 }
 
@@ -1074,7 +1082,23 @@ void spu_interpreter::BRHZ(SPUThread& spu, spu_opcode_t op)
 {
 	if (spu.gpr[op.rt]._u16[6] == 0)
 	{
+		if (spu.id == 0x2000005)
+		{
+			LOG_ERROR(LOADER, "BRHZ branching at 0x%x", spu.pc);
+		}
 		spu.pc = spu_branch_target(spu.pc, op.i16) - 4;
+	}
+	else
+	{
+		if (spu.id == 0x2000005)
+		{
+			LOG_ERROR(LOADER, "BRHZ not branching at 0x%x", spu.pc);
+			LOG_ERROR(LOADER, "RT is: %s", spu.gpr[op.rt]);
+			for (int i = 0; i < 8; i++)
+			{
+				LOG_ERROR(LOADER, "_u16[%d]:0x%4x", i, spu.gpr[op.rt]._u16[i]);
+			}
+		}
 	}
 }
 
@@ -1082,7 +1106,15 @@ void spu_interpreter::BRHNZ(SPUThread& spu, spu_opcode_t op)
 {
 	if (spu.gpr[op.rt]._u16[6] != 0)
 	{
+		if (spu.id == 0x2000005)
+		{
+			LOG_ERROR(LOADER, "BRHNZ branching at 0x%x", spu.pc);
+		}
 		spu.pc = spu_branch_target(spu.pc, op.i16) - 4;
+	}
+	else
+	{
+		if (spu.id == 0x2000005) LOG_ERROR(LOADER, "BRHNZ not branching at 0x%x", spu.pc);
 	}
 }
 
@@ -1292,6 +1324,13 @@ void spu_interpreter::CEQI(SPUThread& spu, spu_opcode_t op)
 void spu_interpreter::CEQHI(SPUThread& spu, spu_opcode_t op)
 {
 	spu.gpr[op.rt].vi = _mm_cmpeq_epi16(spu.gpr[op.ra].vi, _mm_set1_epi16(op.si10));
+	if (spu.pc == 0x30B8)
+	{
+		LOG_ERROR(LOADER, "LOG HERE: 0x%x", spu.pc);
+		LOG_ERROR(LOADER, "RT:%s", spu.gpr[op.rt]);
+		LOG_ERROR(LOADER, "RA:%s", spu.gpr[op.ra]);
+		LOG_ERROR(LOADER, "si10:%d", op.si10);
+	}
 }
 
 void spu_interpreter::CEQBI(SPUThread& spu, spu_opcode_t op)
