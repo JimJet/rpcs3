@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Utilities/event.h"
 #include "Utilities/bin_patch.h"
 #include "Emu/Memory/Memory.h"
@@ -26,6 +26,10 @@
 #include <thread>
 
 #include "Utilities/GDBDebugServer.h"
+
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 cfg_root g_cfg;
 
@@ -623,6 +627,9 @@ void Emulator::Run()
 		return;
 	}
 
+#ifdef _WIN32
+	SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
+#endif
 	
 	GetCallbacks().on_run();
 
@@ -726,6 +733,10 @@ void Emulator::Stop()
 	}
 
 	LOG_NOTICE(GENERAL, "Stopping emulator...");
+
+#ifdef _WIN32
+	SetThreadExecutionState(ES_CONTINUOUS);
+#endif
 
 	GetCallbacks().on_stop();
 
