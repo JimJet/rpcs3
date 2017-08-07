@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "stdafx.h"
 #include "Emu/Memory/Memory.h"
@@ -45,6 +45,7 @@ class debugger_frame : public QDockWidget
 	QPushButton* m_btn_capture;
 	QPushButton* m_btn_step;
 	QPushButton* m_btn_run;
+	QPushButton* m_btn_dmpspu;
 	QComboBox* m_choice_units;
 	QString m_current_choice;
 	bool m_noThreadSelected = true;
@@ -98,6 +99,7 @@ private Q_SLOTS:
 	void Show_Val();
 	void Show_PC();
 	void EnableUpdateTimer(bool state);
+	void DumpSpu();
 };
 
 class debugger_list : public QListWidget
