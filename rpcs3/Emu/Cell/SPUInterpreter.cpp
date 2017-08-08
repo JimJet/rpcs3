@@ -369,6 +369,7 @@ void spu_interpreter::STQX(SPUThread& spu, spu_opcode_t op)
 
 void spu_interpreter::BI(SPUThread& spu, spu_opcode_t op)
 {
+	if (spu.id == 0x2000005) LOG_ERROR(LOADER, "BI branching to 0x%x", spu_branch_target(spu.gpr[op.ra]._u32[3]));
 	spu.pc = spu_branch_target(spu.gpr[op.ra]._u32[3]) - 4;
 	set_interrupt_status(spu, op);
 }
@@ -1059,6 +1060,7 @@ void spu_interpreter::BRZ(SPUThread& spu, spu_opcode_t op)
 
 void spu_interpreter::STQA(SPUThread& spu, spu_opcode_t op)
 {
+	if(spu.pc == 0x34B4 || spu.pc == 0x032E8) LOG_ERROR(LOADER, "Special Store:%s", spu.gpr[op.rt]);
 	spu._ref<v128>(spu_ls_target(0, op.i16)) = spu.gpr[op.rt];
 }
 
@@ -1066,10 +1068,7 @@ void spu_interpreter::BRNZ(SPUThread& spu, spu_opcode_t op)
 {
 	if (spu.gpr[op.rt]._u32[3] != 0)
 	{
-		if (spu.id == 0x2000005)
-		{
-			LOG_ERROR(LOADER, "BRNZ branching at 0x%x", spu.pc);
-		}
+		if (spu.id == 0x2000005) LOG_ERROR(LOADER, "BRNZ branching at 0x%x", spu.pc);
 		spu.pc = spu_branch_target(spu.pc, op.i16) - 4;
 	}
 	else
@@ -1082,23 +1081,12 @@ void spu_interpreter::BRHZ(SPUThread& spu, spu_opcode_t op)
 {
 	if (spu.gpr[op.rt]._u16[6] == 0)
 	{
-		if (spu.id == 0x2000005)
-		{
-			LOG_ERROR(LOADER, "BRHZ branching at 0x%x", spu.pc);
-		}
+		if (spu.id == 0x2000005) LOG_ERROR(LOADER, "BRHZ branching at 0x%x", spu.pc);
 		spu.pc = spu_branch_target(spu.pc, op.i16) - 4;
 	}
 	else
 	{
-		if (spu.id == 0x2000005)
-		{
-			LOG_ERROR(LOADER, "BRHZ not branching at 0x%x", spu.pc);
-			LOG_ERROR(LOADER, "RT is: %s", spu.gpr[op.rt]);
-			for (int i = 0; i < 8; i++)
-			{
-				LOG_ERROR(LOADER, "_u16[%d]:0x%4x", i, spu.gpr[op.rt]._u16[i]);
-			}
-		}
+		if (spu.id == 0x2000005) LOG_ERROR(LOADER, "BRHZ not branching at 0x%x", spu.pc);
 	}
 }
 
@@ -1106,10 +1094,7 @@ void spu_interpreter::BRHNZ(SPUThread& spu, spu_opcode_t op)
 {
 	if (spu.gpr[op.rt]._u16[6] != 0)
 	{
-		if (spu.id == 0x2000005)
-		{
-			LOG_ERROR(LOADER, "BRHNZ branching at 0x%x", spu.pc);
-		}
+		if (spu.id == 0x2000005) LOG_ERROR(LOADER, "BRHNZ branching at 0x%x", spu.pc);
 		spu.pc = spu_branch_target(spu.pc, op.i16) - 4;
 	}
 	else
@@ -1153,6 +1138,9 @@ void spu_interpreter::FSMBI(SPUThread& spu, spu_opcode_t op)
 void spu_interpreter::BRSL(SPUThread& spu, spu_opcode_t op)
 {
 	const u32 target = spu_branch_target(spu.pc, op.i16);
+
+	if (spu.id == 0x2000005) LOG_ERROR(LOADER, "BRSL branching to 0x%x", target);
+
 	spu.gpr[op.rt] = v128::from32r(spu_branch_target(spu.pc + 4));
 	spu.pc = target - 4;
 }
