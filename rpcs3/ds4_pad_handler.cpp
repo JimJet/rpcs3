@@ -399,18 +399,14 @@ void ds4_pad_handler::ProcessData()
 		}
 
 #ifdef _WIN32
-		bool any_button_pressed = false;
-
 		for (int i = 6; i < 16; i++)
 		{
 			if (pad.m_buttons[i].m_pressed)
 			{
-				any_button_pressed = true;
+				SetThreadExecutionState(ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
 				break;
 			}
 		}
-
-		if(any_button_pressed) SetThreadExecutionState(ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
 #endif
 
 		// these values come already calibrated from our ds4Thread,
