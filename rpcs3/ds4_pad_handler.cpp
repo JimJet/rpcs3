@@ -5,6 +5,10 @@
 #include <thread>
 #include <cmath>
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 namespace
 {
 	const auto THREAD_SLEEP = 1ms; //ds4 has new data every ~4ms, 
@@ -369,10 +373,17 @@ void ds4_pad_handler::ProcessData()
 			fmt::throw_exception("ds4 dpad state encountered unexpected input");
 		}
 
+#ifdef _WIN32
+		bool any_button_pressed = false;
+#endif
+
 		// square, cross, circle, triangle
 		for (int i = 4; i < 8; ++i)
 		{
 			const bool pressed = ((buf[5] & (1 << i)) != 0);
+#ifdef _WIN32
+			any_button_pressed |= pressed;
+#endif
 			pad.m_buttons[6 + i - 4].m_pressed = pressed;
 			pad.m_buttons[6 + i - 4].m_value = pressed ? 255 : 0;
 		}
@@ -390,9 +401,19 @@ void ds4_pad_handler::ProcessData()
 		for (int i = 4; i < 8; ++i)
 		{
 			const bool pressed = ((buf[6] & (1 << i)) != 0);
+#ifdef _WIN32
+			any_button_pressed |= pressed;
+#endif
 			pad.m_buttons[12 + i - 4].m_pressed = pressed;
 			pad.m_buttons[12 + i - 4].m_value = pressed ? 255 : 0;
 		}
+
+#ifdef _WIN32
+		any_button_pressed |= (l1press || l2press);
+		if(any_button_pressed) SetThreadExecutionState(ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
+#endif
+
+
 
 		// these values come already calibrated from our ds4Thread,
 		// all we need to do is convert to ds3 range
