@@ -208,14 +208,22 @@ DWORD xinput_pad_handler::ThreadProcedure()
 				last_connection_status[i] = true;
 				pad.m_port_status |= CELL_PAD_STATUS_CONNECTED;
 
-				bool any_button_pressed = false;
-
 				for (DWORD j = 0; j != XINPUT_GAMEPAD_BUTTONS; ++j)
 				{
 					bool pressed = state.Gamepad.wButtons & (1 << j);
-					any_button_pressed |= pressed;
 					pad.m_buttons[j].m_pressed = pressed;
 					pad.m_buttons[j].m_value = pressed ? 255 : 0;
+				}
+
+				bool any_button_pressed = false;
+
+				for (int i = 6; i < 16; i++)
+				{
+					if (pad.m_buttons[i].m_pressed)
+					{
+						any_button_pressed = true;
+						break;
+					}
 				}
 
 				if (any_button_pressed) SetThreadExecutionState(ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
