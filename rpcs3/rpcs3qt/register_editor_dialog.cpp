@@ -91,7 +91,7 @@ void register_editor_dialog::updateRegister()
 {
 	const auto cpu = this->cpu.lock();
 
-	std::string reg = sstr(t1_register->itemData(t1_register->currentIndex()));
+	std::string reg = sstr(t1_register->itemText(t1_register->currentIndex()));
 	std::string str;
 
 	if (g_system == system_type::ps3 && cpu->id_type() == 1)
@@ -130,7 +130,7 @@ void register_editor_dialog::OnOkay(const std::shared_ptr<cpu_thread>& _cpu)
 {
 	const auto cpu = _cpu.get();
 
-	std::string reg = sstr(t1_register->itemData(t1_register->currentIndex()));
+	std::string reg = sstr(t1_register->itemText(t1_register->currentIndex()));
 	std::string value = sstr(t2_value->text());
 
 	if (g_system == system_type::ps3 && cpu->id_type() == 1)
