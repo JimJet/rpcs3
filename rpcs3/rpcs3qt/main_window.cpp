@@ -1,4 +1,4 @@
-
+﻿
 #include <QApplication>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -20,6 +20,7 @@
 #include "cg_disasm_window.h"
 #include "memory_string_searcher.h"
 #include "memory_viewer_panel.h"
+#include "bpmanager_panel.h"
 #include "rsx_debugger.h"
 #include "main_window.h"
 #include "emu_settings.h"
@@ -1136,6 +1137,10 @@ void main_window::CreateConnects()
 	connect(ui->toolsStringSearchAct, &QAction::triggered, [=](){
 		memory_string_searcher* mss = new memory_string_searcher(this);
 		mss->show();
+	});
+	connect(ui->toolsBreakpointManagerAct, &QAction::triggered, [=]() {
+		bpmanager_panel *bpm = new bpmanager_panel(this);
+		bpm->show();
 	});
 	connect(ui->toolsDecryptSprxLibsAct, &QAction::triggered, this, &main_window::DecryptSPRXLibraries);
 	connect(ui->showDebuggerAct, &QAction::triggered, [=](bool checked){

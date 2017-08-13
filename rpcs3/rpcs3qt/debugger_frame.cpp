@@ -1,4 +1,6 @@
 ﻿#include "debugger_frame.h"
+#include "memory_viewer_panel.h"
+#include "bpmanager_panel.h"
 
 #include <QScrollBar>
 #include <QApplication>
@@ -650,6 +652,18 @@ void debugger_list::keyPressEvent(QKeyEvent* event)
 			dlg->show();
 			m_debugFrame->DoUpdate();
 			return;
+		}
+		case Qt::Key_M:
+		{
+			memory_viewer_panel* dlg = new memory_viewer_panel(this);
+			dlg->show();
+			m_debugFrame->DoUpdate();
+		}
+		case Qt::Key_B:
+		{
+			bpmanager_panel* dlg = new bpmanager_panel(this);
+			dlg->show();
+			m_debugFrame->DoUpdate();
 		}
 		}
 	}
