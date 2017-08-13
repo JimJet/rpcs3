@@ -3,7 +3,7 @@
 #include "breakpoint.h"
 #include "emu_settings.h"
 
-std::array<std::vector<breakpoint>, 5> breakpoints_list;
+std::array<std::map<u32, std::string>, 5> breakpoints_list;
 
 
 static const std::string bp_names[] = { "BPX", "BPMB", "BPMH", "BPMW", "BPMD" };
@@ -77,13 +77,13 @@ bpmanager_panel::bpmanager_panel(QWidget* parent)
 		list_bps->horizontalHeader()->height() + list_bps->verticalHeader()->length() + list_bps->frameWidth() * 2);
 	resize(minimumSize().expandedTo(sizeHint() - list_bps->sizeHint() + tableSize));
 
-	connect(b_addbp, &QAbstractButton::clicked, add_breakpoint);
+	connect(b_addbp, &QAbstractButton::clicked, this, &bpmanager_panel::add_breakpoint);
 }
 
 void bpmanager_panel::refresh_list()
 {
 	u32 index = 0, type=0;
-	list_bps->clear();
+	list_bps->clearContents();
 
 	auto l_GetItem = [](const std::string& text)
 	{
@@ -98,8 +98,8 @@ void bpmanager_panel::refresh_list()
 		for (auto& breakpoint : bp_list)
 		{
 			list_bps->setItem(index, 0, l_GetItem(bp_names[type]));
-			list_bps->setItem(index, 1, l_GetItem(fmt::format("%08x", breakpoint.addr)));
-			list_bps->setItem(index, 2, l_GetItem(breakpoint.s_note));
+			list_bps->setItem(index, 1, l_GetItem(fmt::format("%08x", breakpoint.first)));
+			list_bps->setItem(index, 2, l_GetItem(breakpoint.second));
 		}
 	}
 }
@@ -113,23 +113,12 @@ void bpmanager_panel::add_breakpoint()
 		t_addr->setText("");
 		return;
 	}
+
 	u32 type = co_bptype->currentIndex();
+	breakpoints_list[type][addr]=t_bpnote->text().toStdString();
 
-	//Check if it already exist before adding
-	for (auto& bp : breakpoints_list[type])
-	{
-		if (bp.addr == addr)
-		{
-			//Update the note if it exists
-			bp.s_note = t_bpnote->text().toStdString();
-			refresh_list();
-			return;
-		}
-	}
+	t_addr->clear();
+	t_bpnote->clear();
 
-	breakpoint new_bp;
-	new_bp.addr = addr;
-	new_bp.s_note = t_bpnote->text().toStdString();
-	breakpoints_list[type].push_back(std::move(new_bp));
 	refresh_list();
 }
