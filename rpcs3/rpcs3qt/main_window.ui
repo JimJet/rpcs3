@@ -223,6 +223,7 @@ margin-left:14px;</string>
     <addaction name="toolsmemory_viewerAct"/>
     <addaction name="toolsRsxDebuggerAct"/>
     <addaction name="toolsStringSearchAct"/>
+    <addaction name="toolsBreakpointManagerAct"/>
     <addaction name="separator"/>
     <addaction name="toolsDecryptSprxLibsAct"/>
    </widget>
@@ -938,6 +939,11 @@ QLineEdit { background-color: rgba(227, 227, 227, 255); }</string>
    </property>
    <property name="text">
     <string>Show Game Tool Bar</string>
+   </property>
+  </action>
+  <action name="toolsBreakpointManagerAct">
+   <property name="text">
+    <string>Breakpoint Manager</string>
    </property>
   </action>
  </widget>

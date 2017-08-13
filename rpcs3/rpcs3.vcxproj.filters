@@ -479,6 +479,9 @@
     <ClCompile Include="rpcs3qt\save_data_list_dialog.cpp">
       <Filter>Gui\saves</Filter>
     </ClCompile>
+    <ClCompile Include="rpcs3qt\bpmanager_panel.cpp">
+      <Filter>Gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="\rpcs3qt\*.h">
@@ -534,6 +537,9 @@
     </ClInclude>
     <ClInclude Include="rpcs3qt\save_data_dialog.h">
       <Filter>Gui\saves</Filter>
+    </ClInclude>
+    <ClInclude Include="rpcs3qt\bpmanager_panel.h">
+      <Filter>Gui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
