@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "gl_gs_frame.h"
 #include "Emu/System.h"
 
@@ -14,6 +14,7 @@ gl_gs_frame::gl_gs_frame(int w, int h, QIcon appIcon, bool disableMouse)
 	m_format.setMinorVersion(3);
 	m_format.setProfile(QSurfaceFormat::CoreProfile);
 	m_format.setDepthBufferSize(16);
+	m_format.setSwapInterval(0);
 	m_format.setSwapBehavior(QSurfaceFormat::SwapBehavior::DoubleBuffer);
 	if (g_cfg.video.debug_output)
 	{
