@@ -95,7 +95,7 @@ void fmt_class_string<video_renderer>::format(std::string& out, u64 arg)
 		case video_renderer::opengl: return "OpenGL";
 		case video_renderer::vulkan: return "Vulkan";
 #ifdef _MSC_VER
-		case video_renderer::dx12: return "D3D12[DO NOT USE]";
+		case video_renderer::dx12: return "D3D12";
 #endif
 		}
 
