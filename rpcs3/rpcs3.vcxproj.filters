@@ -541,6 +541,9 @@
     <ClInclude Include="rpcs3qt\bpmanager_panel.h">
       <Filter>Gui</Filter>
     </ClInclude>
+    <ClInclude Include="rpcs3qt\breakpoint.h">
+      <Filter>Gui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="debug\moc_predefs.h.cbt">
