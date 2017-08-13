@@ -69,4 +69,6 @@ bpmanager_panel::bpmanager_panel(QWidget* parent)
 		list_bps->verticalHeader()->width() + list_bps->horizontalHeader()->length() + list_bps->frameWidth() * 2,
 		list_bps->horizontalHeader()->height() + list_bps->verticalHeader()->length() + list_bps->frameWidth() * 2);
 	resize(minimumSize().expandedTo(sizeHint() - list_bps->sizeHint() + tableSize));
+
+
 }
