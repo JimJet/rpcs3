@@ -235,17 +235,17 @@ s32 cellSysutilCheckCallback(ppu_thread& ppu)
 {
 	cellSysutil.trace("cellSysutilCheckCallback()");
 
-	//const auto cbm = fxm::get_always<sysutil_cb_manager>();
+	const auto cbm = fxm::get_always<sysutil_cb_manager>();
 
-	//while (auto&& func = cbm->get_cb())
-	//{
-	//	if (s32 res = func(ppu))
-	//	{
-	//		return res;
-	//	}
+	while (auto&& func = cbm->get_cb())
+	{
+		if (s32 res = func(ppu))
+		{
+			return res;
+		}
 
-	//	thread_ctrl::test();
-	//}
+		thread_ctrl::test();
+	}
 
 	return CELL_OK;
 }
