@@ -4,6 +4,7 @@
 #include "emu_settings.h"
 
 std::array<std::map<u32, std::string>, 5> breakpoints_list;
+bool break_on_bpm = false;
 
 
 static const std::string bp_names[] = { "BPX", "BPMB", "BPMH", "BPMW", "BPMD" };
@@ -82,8 +83,9 @@ bpmanager_panel::bpmanager_panel(QWidget* parent)
 
 void bpmanager_panel::refresh_list()
 {
-	u32 index = 0, type=0;
+	u32 index = 0, type = 0;
 	list_bps->clearContents();
+	list_bps->setRowCount(0);
 
 	auto l_GetItem = [](const std::string& text)
 	{
@@ -93,17 +95,29 @@ void bpmanager_panel::refresh_list()
 		return curr;
 	};
 
+	auto l_GetItemWithData = [](const u32 type)
+	{
+		QTableWidgetItem* curr = new QTableWidgetItem;
+		curr->setFlags(curr->flags() & ~Qt::ItemIsEditable);
+		curr->setText(qstr(bp_names[type]));
+		curr->setData(Qt::UserRole, type);
+		return curr;
+	};
+
 	for (auto& bp_list : breakpoints_list)
 	{
 		for (auto& breakpoint : bp_list)
 		{
-			//list_bps->setRowCount(list_bps->rowCount()+1);
-			list_bps->setItem(index, 0, l_GetItem(bp_names[type]));
+			list_bps->insertRow(index);
+			list_bps->setItem(index, 0, l_GetItemWithData(type));
 			list_bps->setItem(index, 1, l_GetItem(fmt::format("%08x", breakpoint.first)));
 			list_bps->setItem(index, 2, l_GetItem(breakpoint.second));
 			index++;
 		}
+		type++;
 	}
+
+	LOG_ERROR(LOADER, "Number of breakpoints:%d", index);
 }
 
 void bpmanager_panel::add_breakpoint()

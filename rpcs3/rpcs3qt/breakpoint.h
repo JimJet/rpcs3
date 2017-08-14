@@ -6,11 +6,12 @@
 
 enum BreakpointType : u8
 {
-	bpx,
-	bpmb,
-	bpmh,
-	bpmw,
-	bpmd,
+	bp_bpx,
+	bp_bpmb,
+	bp_bpmh,
+	bp_bpmw,
+	bp_bpmd,
 };
 
 extern std::array<std::map<u32, std::string>, 5> breakpoints_list;
+extern bool break_on_bpm;
