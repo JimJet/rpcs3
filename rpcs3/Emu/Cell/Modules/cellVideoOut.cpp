@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Emu/System.h"
 #include "Emu/Cell/PPUModule.h"
 
@@ -129,16 +129,18 @@ error_code cellVideoOutGetResolution(u32 resolutionId, vm::ptr<CellVideoOutResol
 error_code cellVideoOutConfigure(u32 videoOut, vm::ptr<CellVideoOutConfiguration> config, vm::ptr<CellVideoOutOption> option, u32 waitForEvent)
 {
 	cellSysutil.warning("cellVideoOutConfigure(videoOut=%d, config=*0x%x, option=*0x%x, waitForEvent=%d)", videoOut, config, option, waitForEvent);
+	cellSysutil.error("ResolutionId:%d, Format:%d, Aspect:%d", config->resolutionId, config->format, config->aspect);
 
 	switch (videoOut)
 	{
 	case CELL_VIDEO_OUT_PRIMARY:
 		if (config->resolutionId != g_video_out_resolution_id.at(g_cfg.video.resolution)
-			|| (config->format != CELL_VIDEO_OUT_BUFFER_COLOR_FORMAT_X8R8G8B8 &&
-				config->format != CELL_VIDEO_OUT_BUFFER_COLOR_FORMAT_X8B8G8R8 &&
-				config->format != CELL_VIDEO_OUT_BUFFER_COLOR_FORMAT_R16G16B16X16_FLOAT) 
+			|| ((config->format&0x3) != CELL_VIDEO_OUT_BUFFER_COLOR_FORMAT_X8R8G8B8 &&
+				(config->format&0x3) != CELL_VIDEO_OUT_BUFFER_COLOR_FORMAT_X8B8G8R8 &&
+				(config->format&0x3) != CELL_VIDEO_OUT_BUFFER_COLOR_FORMAT_R16G16B16X16_FLOAT) 
 			|| (config->aspect != CELL_VIDEO_OUT_ASPECT_AUTO && config->aspect != g_video_out_aspect_id.at(g_cfg.video.aspect_ratio)))
 		{
+			cellSysutil.error("ResolutionId:%d, Format:%d, Aspect:%d", config->resolutionId, config->format, config->aspect);
 			return CELL_VIDEO_OUT_ERROR_ILLEGAL_CONFIGURATION;
 		}
 		return CELL_OK;
