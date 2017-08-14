@@ -97,9 +97,11 @@ void bpmanager_panel::refresh_list()
 	{
 		for (auto& breakpoint : bp_list)
 		{
+			//list_bps->setRowCount(list_bps->rowCount()+1);
 			list_bps->setItem(index, 0, l_GetItem(bp_names[type]));
 			list_bps->setItem(index, 1, l_GetItem(fmt::format("%08x", breakpoint.first)));
 			list_bps->setItem(index, 2, l_GetItem(breakpoint.second));
+			index++;
 		}
 	}
 }
@@ -116,6 +118,7 @@ void bpmanager_panel::add_breakpoint()
 
 	u32 type = co_bptype->currentIndex();
 	breakpoints_list[type][addr]=t_bpnote->text().toStdString();
+	//breakpoints_list[type].emplace(addr, t_bpnote->text().toStdString());
 
 	t_addr->clear();
 	t_bpnote->clear();
