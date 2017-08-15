@@ -1,4 +1,4 @@
-#ifndef X_INPUT_PAD_HANDLER
+﻿#ifndef X_INPUT_PAD_HANDLER
 #define X_INPUT_PAD_HANDLER
 
 #include "Utilities/Config.h"
@@ -41,9 +41,11 @@ public:
 	xinput_pad_handler();
 	~xinput_pad_handler();
 
-	void Init(const u32 max_connect) override;
+	void Init() override;
 	void SetRumble(const u32 pad, u8 largeMotor, bool smallMotor) override;
 	void Close();
+
+	std::vector<std::string> ListDevices() override;
 
 private:
 	typedef void (WINAPI * PFN_XINPUTENABLE)(BOOL);
@@ -56,6 +58,7 @@ private:
 	static DWORD WINAPI ThreadProcProxy(LPVOID parameter);
 
 private:
+	bool is_init;
 	mutable bool active;
 	float squircle_factor;
 	u32 left_stick_deadzone, right_stick_deadzone;
@@ -64,7 +67,6 @@ private:
 	PFN_XINPUTGETSTATE xinputGetState;
 	PFN_XINPUTSETSTATE xinputSetState;
 	PFN_XINPUTENABLE xinputEnable;
-
 };
 
 extern xinput_config xinput_cfg;

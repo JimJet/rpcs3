@@ -859,6 +859,7 @@ copy "$(OutDir)\rpcs3.exe" "G:\Rpcs3\rpcs3.exe" /Y
     </ClCompile>
     <ClCompile Include="rpcs3qt\about_dialog.cpp" />
     <ClCompile Include="rpcs3qt\bpmanager_panel.cpp" />
+    <ClCompile Include="rpcs3qt\gamepads_settings_dialog.cpp" />
     <ClCompile Include="rpcs3qt\game_list_grid.cpp" />
     <ClCompile Include="rpcs3qt\game_list_grid_delegate.cpp" />
     <ClCompile Include="rpcs3qt\save_data_info_dialog.cpp" />
@@ -1225,6 +1226,7 @@ copy "$(OutDir)\rpcs3.exe" "G:\Rpcs3\rpcs3.exe" /Y
     </CustomBuild>
     <ClInclude Include="rpcs3qt\bpmanager_panel.h" />
     <ClInclude Include="rpcs3qt\breakpoint.h" />
+    <ClInclude Include="rpcs3qt\gamepads_settings_dialog.h" />
     <ClInclude Include="rpcs3qt\game_list.h" />
     <ClInclude Include="rpcs3qt\game_list_grid_delegate.h" />
     <ClInclude Include="resource.h" />

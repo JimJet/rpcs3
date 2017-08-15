@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 // TODO: HLE info (constants, structs, etc.) should not be available here
 
@@ -236,11 +236,11 @@ struct PadInfo
 class PadHandlerBase
 {
 protected:
-	PadInfo m_info;
-	std::vector<Pad> m_pads;
+	static PadInfo m_info;
+	static std::vector<Pad> m_pads;
 
 public:
-	virtual void Init(const u32 max_connect) = 0;
+	virtual void Init() = 0;
 	virtual ~PadHandlerBase() = default;
 
 	//Set value to set pressure/axi to certain level, otherwise 0/255 default
@@ -301,4 +301,11 @@ public:
 	virtual void SetRumble(const u32 pad, u8 largeMotor, bool smallMotor) {};
 	std::vector<Button>& GetButtons(const u32 pad) { return m_pads[pad].m_buttons; }
 	std::vector<AnalogStick>& GetSticks(const u32 pad) { return m_pads[pad].m_sticks; }
+
+	//Sets window to config the controller
+	virtual void ConfigController() = 0;
+	//Return list of devices for that handler
+	virtual std::vector<std::string> ListDevices() = 0;
+	//Callback called during pad thread
+	virtual void gamepad_callback() = 0;
 };

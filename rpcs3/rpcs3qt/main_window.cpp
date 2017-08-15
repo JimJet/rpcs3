@@ -25,6 +25,7 @@
 #include "main_window.h"
 #include "emu_settings.h"
 #include "about_dialog.h"
+#include "gamepads_settings_dialog.h"
 
 #include <thread>
 
@@ -1100,9 +1101,9 @@ void main_window::CreateConnects()
 	connect(ui->confIOAct,     &QAction::triggered, [=]() { openSettings(3); });
 	connect(ui->confSystemAct, &QAction::triggered, [=]() { openSettings(4); });
 
-	connect(ui->confPadAct, &QAction::triggered, this, [=](){
-		pad_settings_dialog dlg(this);
-		dlg.exec();
+	connect(ui->confPadsAct, &QAction::triggered, this, [=](){
+		gamepads_settings_dialog *dlg = new gamepads_settings_dialog(this);
+		dlg->show();
 	});
 	connect(ui->confAutopauseManagerAct, &QAction::triggered, [=](){
 		auto_pause_settings_dialog dlg(this);

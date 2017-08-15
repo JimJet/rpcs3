@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 
 #ifdef _MSC_VER
 #include "xinput_pad_handler.h"
@@ -34,7 +34,7 @@ namespace {
 	}
 }
 
-xinput_pad_handler::xinput_pad_handler() : active(false), thread(nullptr), library(nullptr), xinputGetState(nullptr), xinputEnable(nullptr), xinputSetState(nullptr)
+xinput_pad_handler::xinput_pad_handler() : active(false), thread(nullptr), library(nullptr), xinputGetState(nullptr), xinputEnable(nullptr), xinputSetState(nullptr), is_init(false)
 {
 }
 
@@ -45,6 +45,8 @@ xinput_pad_handler::~xinput_pad_handler()
 
 void xinput_pad_handler::Init(const u32 max_connect)
 {
+	if (is_init) return;
+
 	for (auto it : LIBRARY_FILENAMES)
 	{
 		library = LoadLibrary(it);
@@ -61,6 +63,7 @@ void xinput_pad_handler::Init(const u32 max_connect)
 
 			if (xinputEnable && xinputGetState && xinputSetState)
 			{
+				is_init = true;
 				break;
 			}
 
@@ -71,59 +74,59 @@ void xinput_pad_handler::Init(const u32 max_connect)
 		}
 	}
 
-	if (library)
-	{
-		std::memset(&m_info, 0, sizeof m_info);
-		m_info.max_connect = max_connect;
+	//if (library)
+	//{
+	//	std::memset(&m_info, 0, sizeof m_info);
+	//	m_info.max_connect = max_connect;
 
-		for (u32 i = 0, max = std::min(max_connect, u32(MAX_GAMEPADS)); i != max; ++i)
-		{
-			m_pads.emplace_back(
-				CELL_PAD_STATUS_DISCONNECTED,
-				CELL_PAD_SETTING_PRESS_OFF | CELL_PAD_SETTING_SENSOR_OFF,
-				CELL_PAD_CAPABILITY_PS3_CONFORMITY | CELL_PAD_CAPABILITY_PRESS_MODE | CELL_PAD_CAPABILITY_ACTUATOR,
-				CELL_PAD_DEV_TYPE_STANDARD
-			);
-			auto & pad = m_pads.back();
+	//for (u32 i = 0, max = std::min(max_connect, u32(MAX_GAMEPADS)); i != max; ++i)
+	//	{
+	//		m_pads.emplace_back(
+	//			CELL_PAD_STATUS_DISCONNECTED,
+	//			CELL_PAD_SETTING_PRESS_OFF | CELL_PAD_SETTING_SENSOR_OFF,
+	//			CELL_PAD_CAPABILITY_PS3_CONFORMITY | CELL_PAD_CAPABILITY_PRESS_MODE | CELL_PAD_CAPABILITY_ACTUATOR,
+	//			CELL_PAD_DEV_TYPE_STANDARD
+	//		);
+	//		auto & pad = m_pads.back();
 
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_DPAD_UP, CELL_PAD_CTRL_UP);
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_DPAD_DOWN, CELL_PAD_CTRL_DOWN);
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_DPAD_LEFT, CELL_PAD_CTRL_LEFT);
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_DPAD_RIGHT, CELL_PAD_CTRL_RIGHT);
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_START, CELL_PAD_CTRL_START);
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_BACK, CELL_PAD_CTRL_SELECT);
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_LEFT_THUMB, CELL_PAD_CTRL_L3);
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_RIGHT_THUMB, CELL_PAD_CTRL_R3);
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, XINPUT_GAMEPAD_LEFT_SHOULDER, CELL_PAD_CTRL_L1);
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, XINPUT_GAMEPAD_RIGHT_SHOULDER, CELL_PAD_CTRL_R1);
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, XINPUT_GAMEPAD_GUIDE, 0x100/*CELL_PAD_CTRL_PS*/);// TODO: PS button support
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, 0x0); // Reserved
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, XINPUT_GAMEPAD_A, CELL_PAD_CTRL_CROSS);
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, XINPUT_GAMEPAD_B, CELL_PAD_CTRL_CIRCLE);
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, XINPUT_GAMEPAD_X, CELL_PAD_CTRL_SQUARE);
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, XINPUT_GAMEPAD_Y, CELL_PAD_CTRL_TRIANGLE);
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_L2);
-			pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_R2);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_DPAD_UP, CELL_PAD_CTRL_UP);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_DPAD_DOWN, CELL_PAD_CTRL_DOWN);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_DPAD_LEFT, CELL_PAD_CTRL_LEFT);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_DPAD_RIGHT, CELL_PAD_CTRL_RIGHT);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_START, CELL_PAD_CTRL_START);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_BACK, CELL_PAD_CTRL_SELECT);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_LEFT_THUMB, CELL_PAD_CTRL_L3);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, XINPUT_GAMEPAD_RIGHT_THUMB, CELL_PAD_CTRL_R3);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, XINPUT_GAMEPAD_LEFT_SHOULDER, CELL_PAD_CTRL_L1);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, XINPUT_GAMEPAD_RIGHT_SHOULDER, CELL_PAD_CTRL_R1);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, XINPUT_GAMEPAD_GUIDE, 0x100/*CELL_PAD_CTRL_PS*/);// TODO: PS button support
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, 0x0); // Reserved
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, XINPUT_GAMEPAD_A, CELL_PAD_CTRL_CROSS);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, XINPUT_GAMEPAD_B, CELL_PAD_CTRL_CIRCLE);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, XINPUT_GAMEPAD_X, CELL_PAD_CTRL_SQUARE);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, XINPUT_GAMEPAD_Y, CELL_PAD_CTRL_TRIANGLE);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_L2);
+	//		pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_R2);
 
-			pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X, 0, 0);
-			pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y, 0, 0);
-			pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X, 0, 0);
-			pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y, 0, 0);
+	//		pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X, 0, 0);
+	//		pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y, 0, 0);
+	//		pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X, 0, 0);
+	//		pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y, 0, 0);
 
-			pad.m_vibrateMotors.emplace_back(true, 0);
-			pad.m_vibrateMotors.emplace_back(false, 0);
-		}
+	//		pad.m_vibrateMotors.emplace_back(true, 0);
+	//		pad.m_vibrateMotors.emplace_back(false, 0);
+	//	}
 
-		xinput_cfg.load();
-		if (!xinput_cfg.exist()) xinput_cfg.save();
+	//	xinput_cfg.load();
+	//	if (!xinput_cfg.exist()) xinput_cfg.save();
 
-		squircle_factor = xinput_cfg.padsquircling / 1000.f;
-		left_stick_deadzone = xinput_cfg.lstickdeadzone;
-		right_stick_deadzone = xinput_cfg.rstickdeadzone;
+	//	squircle_factor = xinput_cfg.padsquircling / 1000.f;
+	//	left_stick_deadzone = xinput_cfg.lstickdeadzone;
+	//	right_stick_deadzone = xinput_cfg.rstickdeadzone;
 
-		active = true;
-		thread = CreateThread(NULL, 0, &xinput_pad_handler::ThreadProcProxy, this, 0, NULL);
-	}
+	//	active = true;
+	//	thread = CreateThread(NULL, 0, &xinput_pad_handler::ThreadProcProxy, this, 0, NULL);
+	//}
 }
 
 void xinput_pad_handler::SetRumble(const u32 pad, u8 largeMotor, bool smallMotor) {
@@ -289,6 +292,28 @@ DWORD xinput_pad_handler::ThreadProcedure()
 	}
 
 	return 0;
+}
+
+std::vector<std::string> xinput_pad_handler::ListDevices()
+{
+	std::vector<std::string> xinput_pads_list;
+
+	if (!is_init)
+	{
+		Init();
+		if (!is_init) return xinput_pads_list;
+	}
+
+	for (DWORD i = 0; i < MAX_GAMEPADS; i++)
+	{
+		XINPUT_STATE state;
+		DWORD result = (*xinputGetState)(i, &state);
+		if (result == ERROR_SUCCESS)
+		{
+			xinput_pads_list.push_back(fmt::format("Xinput Pad #%d", i));
+		}
+	}
+	return xinput_pads_list;
 }
 
 DWORD WINAPI xinput_pad_handler::ThreadProcProxy(LPVOID parameter)
