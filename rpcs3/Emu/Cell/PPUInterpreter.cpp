@@ -1,9 +1,23 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Emu/System.h"
 #include "PPUThread.h"
 #include "PPUInterpreter.h"
+#include "../../rpcs3qt/breakpoint.h"
 
 #include <cmath>
+
+void ppubreak(ppu_thread& ppu)
+{
+	if (!break_on_bpm) return;
+	bool status = ppu.state.test_and_set(cpu_flag::dbg_pause);
+#ifdef WITH_GDB_DEBUGGER
+	fxm::get<GDBDebugServer>()->notify();
+#endif
+	if (!status && ppu.check_state())
+	{
+		return;
+	}
+}
 
 inline u64 dup32(u32 x) { return x | static_cast<u64>(x) << 32; }
 
@@ -4258,6 +4272,13 @@ bool ppu_interpreter::LWZ(ppu_thread& ppu, ppu_opcode_t op)
 {
 	const u64 addr = op.ra ? ppu.gpr[op.ra] + op.simm16 : op.simm16;
 	ppu.gpr[op.rd] = vm::read32(vm::cast(addr, HERE));
+
+	if (breakpoints_list[bp_bpmw].count(addr) != 0)
+	{
+		LOG_SUCCESS(GENERAL, "BPMW: LWZ breakpoint loading 0x%8x at 0x%8x", (u32)ppu.gpr[op.rd], addr);
+		ppubreak(ppu);
+	}
+
 	return true;
 }
 
@@ -4273,6 +4294,13 @@ bool ppu_interpreter::LBZ(ppu_thread& ppu, ppu_opcode_t op)
 {
 	const u64 addr = op.ra ? ppu.gpr[op.ra] + op.simm16 : op.simm16;
 	ppu.gpr[op.rd] = vm::read8(vm::cast(addr, HERE));
+
+	if (breakpoints_list[bp_bpmb].count(addr) != 0)
+	{
+		LOG_SUCCESS(GENERAL, "BPMB: LBZ breakpoint loading 0x%2x at 0x%8x", (u8)ppu.gpr[op.rd], addr);
+		ppubreak(ppu);
+	}
+
 	return true;
 }
 
@@ -4288,6 +4316,13 @@ bool ppu_interpreter::STW(ppu_thread& ppu, ppu_opcode_t op)
 {
 	const u64 addr = op.ra ? ppu.gpr[op.ra] + op.simm16 : op.simm16;
 	vm::write32(vm::cast(addr, HERE), (u32)ppu.gpr[op.rs]);
+
+	if (breakpoints_list[bp_bpmw].count(addr) != 0)
+	{
+		LOG_SUCCESS(GENERAL, "BPMW: STW breakpoint storing 0x%8x at 0x%8x", (u32)ppu.gpr[op.rs], addr);
+		ppubreak(ppu);
+	}
+
 	return true;
 }
 
@@ -4303,6 +4338,13 @@ bool ppu_interpreter::STB(ppu_thread& ppu, ppu_opcode_t op)
 {
 	const u64 addr = op.ra ? ppu.gpr[op.ra] + op.simm16 : op.simm16;
 	vm::write8(vm::cast(addr, HERE), (u8)ppu.gpr[op.rs]);
+
+	if (breakpoints_list[bp_bpmb].count(addr) != 0)
+	{
+		LOG_SUCCESS(GENERAL, "BPMB: STB breakpoint storing 0x%2x at 0x%8x", (u8)ppu.gpr[op.rs], addr);
+		ppubreak(ppu);
+	}
+
 	return true;
 }
 
@@ -4318,6 +4360,13 @@ bool ppu_interpreter::LHZ(ppu_thread& ppu, ppu_opcode_t op)
 {
 	const u64 addr = op.ra ? ppu.gpr[op.ra] + op.simm16 : op.simm16;
 	ppu.gpr[op.rd] = vm::read16(vm::cast(addr, HERE));
+
+	if (breakpoints_list[bp_bpmh].count(addr) != 0)
+	{
+		LOG_SUCCESS(GENERAL, "BPMH: LHZ breakpoint storing 0x%4x at 0x%8x", (u16)ppu.gpr[op.rd], addr);
+		ppubreak(ppu);
+	}
+
 	return true;
 }
 
@@ -4348,6 +4397,13 @@ bool ppu_interpreter::STH(ppu_thread& ppu, ppu_opcode_t op)
 {
 	const u64 addr = op.ra ? ppu.gpr[op.ra] + op.simm16 : op.simm16;
 	vm::write16(vm::cast(addr, HERE), (u16)ppu.gpr[op.rs]);
+
+	if (breakpoints_list[bp_bpmh].count(addr) != 0)
+	{
+		LOG_SUCCESS(GENERAL, "BPMH: STH breakpoint storing 0x%4x at 0x%8x", (u16)ppu.gpr[op.rs], addr);
+		ppubreak(ppu);
+	}
+
 	return true;
 }
 
@@ -4443,6 +4499,13 @@ bool ppu_interpreter::LD(ppu_thread& ppu, ppu_opcode_t op)
 {
 	const u64 addr = (op.simm16 & ~3) + (op.ra ? ppu.gpr[op.ra] : 0);
 	ppu.gpr[op.rd] = vm::read64(vm::cast(addr, HERE));
+
+	if (breakpoints_list[bp_bpmd].count(addr) != 0)
+	{
+		LOG_SUCCESS(GENERAL, "BPMD: LD breakpoint loading 0x%llx at 0x%8x", ppu.gpr[op.rd], addr);
+		ppubreak(ppu);
+	}
+
 	return true;
 }
 
@@ -4465,6 +4528,13 @@ bool ppu_interpreter::STD(ppu_thread& ppu, ppu_opcode_t op)
 {
 	const u64 addr = (op.simm16 & ~3) + (op.ra ? ppu.gpr[op.ra] : 0);
 	vm::write64(vm::cast(addr, HERE), ppu.gpr[op.rs]);
+
+	if (breakpoints_list[bp_bpmd].count(addr) != 0)
+	{
+		LOG_SUCCESS(GENERAL, "BPMD: STD breakpoint storing 0x%llx at 0x%8x", ppu.gpr[op.rs], addr);
+		ppubreak(ppu);
+	}
+
 	return true;
 }
 
