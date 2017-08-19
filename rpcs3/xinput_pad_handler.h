@@ -46,7 +46,7 @@ public:
 	void Close();
 
 	std::vector<std::string> ListDevices() override;
-	void bindPadToDevice(std::vector<Pad> &pads, std::string& device) override;
+	void bindPadToDevice(Pad *pad, std::string& device) override;
 	void ThreadProc() override;
 
 private:
@@ -59,10 +59,8 @@ private:
 
 private:
 	bool is_init;
-	mutable bool active;
 	float squircle_factor;
 	u32 left_stick_deadzone, right_stick_deadzone;
-	HANDLE thread;
 	HMODULE library;
 	PFN_XINPUTGETSTATE xinputGetState;
 	PFN_XINPUTSETSTATE xinputSetState;

@@ -17,7 +17,7 @@ struct PadInfo
 class pad_thread
 {
 public:
-	pad_thread(void *_curthread, void *_curwindow);
+	pad_thread(void *_curthread, void *_curwindow); //void * instead of QThread * and QWindow * because of include in emucore
 	~pad_thread();
 
 	void Init(const u32 max_connect);
@@ -29,9 +29,7 @@ protected:
 	void ThreadFunc();
 
 	//List of all handlers
-	std::map<pad_handler, PadHandlerBase> handlers;
-	//Pointers to quick access to a specific pad
-	std::vector<PadHandlerBase *> list_pads;
+	std::map<pad_handler, std::shared_ptr<PadHandlerBase>> handlers;
 
 	//Used for pad_handler::keyboard
 	void *curthread;
@@ -41,5 +39,5 @@ protected:
 	std::vector<Pad> m_pads;
 
 	bool active;
-	std::thread *thread;
+	std::shared_ptr<std::thread> thread;
 };

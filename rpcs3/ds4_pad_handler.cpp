@@ -125,7 +125,7 @@ namespace
 		return (u32)(((u32)buf[0] << 0) + ((u32)buf[1] << 8) + ((u32)buf[2] << 16) + ((u32)buf[3] << 24));
 	}
 }
-ds4_pad_handler::ds4_pad_handler() : is_init(false)
+ds4_pad_handler::ds4_pad_handler() : is_init(false), online(0)
 {
 
 }
@@ -173,10 +173,6 @@ ds4_pad_handler::ds4_pad_handler() : is_init(false)
 //	return m_pads;
 //}
 //
-void ds4_pad_handler::Close()
-{
-	bindings.clear();
-}
 
 //void ds4_pad_handler::SetRumble(const u32 pad, u8 largeMotor, bool smallMotor)
 //{
@@ -194,10 +190,7 @@ void ds4_pad_handler::Close()
 
 void ds4_pad_handler::SetRumbleData(u32 port, u8 largeVibrate, u8 smallVibrate)
 {
-	semaphore_lock lock(mutex);
-
 	// todo: give unique identifier to this instead of port
-
 	u32 i = 0;
 	for (auto & controller : controllers)
 	{
@@ -217,8 +210,6 @@ std::array<bool, MAX_GAMEPADS> ds4_pad_handler::GetConnectedControllers()
 	std::array<bool, MAX_GAMEPADS> rtnData{};
 	int i = 0;
 
-	semaphore_lock lock(mutex);
-
 	for (const auto & cont : controllers)
 		rtnData[i++] = cont.second.hidDevice != nullptr;
 
@@ -230,7 +221,6 @@ std::array<std::array<u8, 64>, MAX_GAMEPADS> ds4_pad_handler::GetControllerData(
 	std::array<std::array<u8, 64>, MAX_GAMEPADS> rtnData;
 
 	int i = 0;
-	semaphore_lock lock(mutex);
 
 	for (const auto & data : padData)
 		rtnData[i++] = data;
@@ -367,8 +357,6 @@ ds4_pad_handler::~ds4_pad_handler()
 			hid_close(controller.second.hidDevice);
 	}
 	hid_exit();
-
-	Close();
 }
 
 void ds4_pad_handler::SendVibrateData(const DS4Device& device)
@@ -411,111 +399,6 @@ void ds4_pad_handler::SendVibrateData(const DS4Device& device)
 	}
 }
 
-//void ds4_pad_handler::on_task()
-//{
-//	while (!Emu.IsStopped())
-//	{
-//		if (Emu.IsPaused())
-//		{
-//			std::this_thread::sleep_for(10ms);
-//			continue;
-//		}
-//
-//		u32 online = 0;
-//		u32 i = 0;
-//
-//		std::array<u8, 78> buf{};
-//
-//
-//for (auto & controller : controllers)
-//{
-//	semaphore_lock lock(mutex);
-//
-//	if (controller.second.hidDevice == nullptr)
-//	{
-//		// try to reconnect
-//		hid_device* dev = hid_open_path(controller.second.path.c_str());
-//		if (dev)
-//		{
-//			hid_set_nonblocking(dev, 1);
-//			controller.second.hidDevice = dev;
-//		}
-//		else
-//		{
-//			// nope, not there
-//			continue;
-//		}
-//	}
-//
-//	online++;
-//
-//	const int res = hid_read(controller.second.hidDevice, buf.data(), controller.second.btCon ? 78 : 64);
-//	if (res == -1)
-//	{
-//		// looks like controller disconnected or read error, deal with it on next loop
-//		hid_close(controller.second.hidDevice);
-//		controller.second.hidDevice = nullptr;
-//		continue;
-//	}
-//
-//	// no data? keep going
-//	if (res == 0)
-//		continue;
-//
-//	// bt controller sends this until 0x02 feature report is sent back (happens on controller init/restart)
-//	if (controller.second.btCon && buf[0] == 0x1)
-//	{
-//		// tells controller to send 0x11 reports
-//		std::array<u8, 64> buf{};
-//		buf[0] = 0x2;
-//		hid_get_feature_report(controller.second.hidDevice, buf.data(), buf.size());
-//		continue;
-//	}
-//
-//	int offset = 0;
-//	// check report and set offset
-//	if (controller.second.btCon && buf[0] == 0x11 && res == 78)
-//	{
-//		offset = 2;
-//
-//		const u8 btHdr = 0xA1;
-//		const u32 crcHdr = CRCPP::CRC::Calculate(&btHdr, 1, crcTable);
-//		const u32 crcCalc = CRCPP::CRC::Calculate(buf.data(), (DS4_INPUT_REPORT_0x11_SIZE - 4), crcTable, crcHdr);
-//		const u32 crcReported = GetU32LEData(&buf[DS4_INPUT_REPORT_0x11_SIZE - 4]);
-//		if (crcCalc != crcReported) {
-//			LOG_WARNING(HLE, "[DS4] Data packet CRC check failed, ignoring! Received 0x%x, Expected 0x%x", crcReported, crcCalc);
-//			continue;
-//		}
-//
-//	}
-//	else if (!controller.second.btCon && buf[0] == 0x01 && res == 64)
-//		offset = 0;
-//	else
-//		continue;
-//
-//	int calibOffset = offset + DS4_INPUT_REPORT_GYRO_X_OFFSET;
-//	for (int i = 0; i < DS4CalibIndex::COUNT; ++i)
-//	{
-//		const s16 rawValue = GetS16LEData(&buf[calibOffset]);
-//		const s16 calValue = ApplyCalibration(rawValue, controller.second.calibData[i]);
-//		buf[calibOffset++] = ((u16)calValue >> 0) & 0xFF;
-//		buf[calibOffset++] = ((u16)calValue >> 8) & 0xFF;
-//	}
-//
-//	memcpy(padData[i].data(), &buf[offset], 64);
-//
-//	if (controller.second.newVibrateData)
-//	{
-//		SendVibrateData(controller.second);
-//		controller.second.newVibrateData = false;
-//	}
-//
-//	i++;
-//}
-//std::this_thread::sleep_for((online > 0) ? THREAD_SLEEP : THREAD_SLEEP_INACTIVE);
-//	}
-//}
-
 void ds4_pad_handler::Init()
 {
 	if (is_init) return;
@@ -527,21 +410,17 @@ void ds4_pad_handler::Init()
 	// get all the possible controllers at start
 	for (auto pid : ds4Pids)
 	{
-hid_device_info* devInfo = hid_enumerate(DS4_VID, pid);
-hid_device_info* head = devInfo;
-while (devInfo)
-{
-	if (controllers.size() >= MAX_GAMEPADS)
-		break;
+		hid_device_info* devInfo = hid_enumerate(DS4_VID, pid);
+		hid_device_info* head = devInfo;
+		while (devInfo)
+		{
+			if (controllers.size() >= MAX_GAMEPADS)	break;
 
-	hid_device* dev = hid_open_path(devInfo->path);
-	if (dev)
-		CheckAddDevice(dev, devInfo);
-
-	devInfo = devInfo->next;
-}
-
-hid_free_enumeration(head);
+			hid_device* dev = hid_open_path(devInfo->path);
+			if (dev) CheckAddDevice(dev, devInfo);
+			devInfo = devInfo->next;
+		}
+		hid_free_enumeration(head);
 	}
 
 	if (controllers.size() == 0)
@@ -570,53 +449,52 @@ std::vector<std::string> ds4_pad_handler::ListDevices()
 	return ds4_pads_list;
 }
 
-void ds4_pad_handler::bindPadToDevice(std::vector<Pad>& pads, std::string& device)
+void ds4_pad_handler::bindPadToDevice(Pad *pad, std::string& device)
 {
-	pads.emplace_back(
+	pad->Init(
 		CELL_PAD_STATUS_DISCONNECTED,
 		CELL_PAD_SETTING_PRESS_OFF | CELL_PAD_SETTING_SENSOR_OFF,
 		CELL_PAD_CAPABILITY_PS3_CONFORMITY | CELL_PAD_CAPABILITY_PRESS_MODE | CELL_PAD_CAPABILITY_HP_ANALOG_STICK | CELL_PAD_CAPABILITY_ACTUATOR | CELL_PAD_CAPABILITY_SENSOR_MODE,
 		CELL_PAD_DEV_TYPE_STANDARD
 	);
-	auto &pad = pads.back();
 
 	// 'keycode' here is just 0 as we have to manually calculate this
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_L2);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_R2);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_L2);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_R2);
 
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_UP);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_DOWN);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_LEFT);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_RIGHT);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_UP);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_DOWN);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_LEFT);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_RIGHT);
 
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_SQUARE);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_CROSS);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_CIRCLE);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_TRIANGLE);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_SQUARE);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_CROSS);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_CIRCLE);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_TRIANGLE);
 
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_L1);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_R1);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_L1);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, CELL_PAD_CTRL_R1);
 
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_SELECT);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_START);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_L3);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_R3);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_SELECT);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_START);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_L3);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, 0, CELL_PAD_CTRL_R3);
 
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, 0x100/*CELL_PAD_CTRL_PS*/);// TODO: PS button support
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, 0x0); // Reserved
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, 0x100/*CELL_PAD_CTRL_PS*/);// TODO: PS button support
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, 0x0); // Reserved
 
-	pad.m_sensors.emplace_back(CELL_PAD_BTN_OFFSET_SENSOR_X, 512);
-	pad.m_sensors.emplace_back(CELL_PAD_BTN_OFFSET_SENSOR_Y, 399);
-	pad.m_sensors.emplace_back(CELL_PAD_BTN_OFFSET_SENSOR_Z, 512);
-	pad.m_sensors.emplace_back(CELL_PAD_BTN_OFFSET_SENSOR_G, 512);
+	pad->m_sensors.emplace_back(CELL_PAD_BTN_OFFSET_SENSOR_X, 512);
+	pad->m_sensors.emplace_back(CELL_PAD_BTN_OFFSET_SENSOR_Y, 399);
+	pad->m_sensors.emplace_back(CELL_PAD_BTN_OFFSET_SENSOR_Z, 512);
+	pad->m_sensors.emplace_back(CELL_PAD_BTN_OFFSET_SENSOR_G, 512);
 
-	pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X, 0, 0);
-	pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y, 0, 0);
-	pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X, 0, 0);
-	pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y, 0, 0);
+	pad->m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X, 0, 0);
+	pad->m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y, 0, 0);
+	pad->m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X, 0, 0);
+	pad->m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y, 0, 0);
 
-	pad.m_vibrateMotors.emplace_back(true, 0);
-	pad.m_vibrateMotors.emplace_back(false, 0);
+	pad->m_vibrateMotors.emplace_back(true, 0);
+	pad->m_vibrateMotors.emplace_back(false, 0);
 
 	size_t pos = device.find("Ds4 Pad #");
 	std::string pad_serial = device.substr(pos + 9);
@@ -630,21 +508,108 @@ void ds4_pad_handler::bindPadToDevice(std::vector<Pad>& pads, std::string& devic
 		}
 		pad_id++;
 	}
-
+	
 	if (pad_id == controllers.size()) pad_id = 0;
 
-	bindings.push_back(std::make_pair(pad_id, &pad));
+	bindings.push_back(std::make_pair(pad_id, pad));
 }
 
 void ds4_pad_handler::ThreadProc()
 {
+	u32 i = 0;
+	std::array<u8, 78> buf{};
+
+	for (auto & controller : controllers)
+	{
+
+		if (controller.second.hidDevice == nullptr)
+		{
+			// try to reconnect
+			hid_device* dev = hid_open_path(controller.second.path.c_str());
+			if (dev)
+			{
+				hid_set_nonblocking(dev, 1);
+				controller.second.hidDevice = dev;
+			}
+			else
+			{
+				// nope, not there
+				continue;
+			}
+		}
+
+		online++;
+
+		const int res = hid_read(controller.second.hidDevice, buf.data(), controller.second.btCon ? 78 : 64);
+		if (res == -1)
+		{
+			// looks like controller disconnected or read error, deal with it on next loop
+			hid_close(controller.second.hidDevice);
+			controller.second.hidDevice = nullptr;
+			continue;
+		}
+
+		// no data? keep going
+		if (res == 0)
+			continue;
+
+		// bt controller sends this until 0x02 feature report is sent back (happens on controller init/restart)
+		if (controller.second.btCon && buf[0] == 0x1)
+		{
+			// tells controller to send 0x11 reports
+			std::array<u8, 64> buf{};
+			buf[0] = 0x2;
+			hid_get_feature_report(controller.second.hidDevice, buf.data(), buf.size());
+			continue;
+		}
+
+		int offset = 0;
+		// check report and set offset
+		if (controller.second.btCon && buf[0] == 0x11 && res == 78)
+		{
+			offset = 2;
+
+			const u8 btHdr = 0xA1;
+			const u32 crcHdr = CRCPP::CRC::Calculate(&btHdr, 1, crcTable);
+			const u32 crcCalc = CRCPP::CRC::Calculate(buf.data(), (DS4_INPUT_REPORT_0x11_SIZE - 4), crcTable, crcHdr);
+			const u32 crcReported = GetU32LEData(&buf[DS4_INPUT_REPORT_0x11_SIZE - 4]);
+			if (crcCalc != crcReported) {
+				LOG_WARNING(HLE, "[DS4] Data packet CRC check failed, ignoring! Received 0x%x, Expected 0x%x", crcReported, crcCalc);
+				continue;
+			}
+
+		}
+		else if (!controller.second.btCon && buf[0] == 0x01 && res == 64)
+			offset = 0;
+		else
+			continue;
+
+		int calibOffset = offset + DS4_INPUT_REPORT_GYRO_X_OFFSET;
+		for (int i = 0; i < DS4CalibIndex::COUNT; ++i)
+		{
+			const s16 rawValue = GetS16LEData(&buf[calibOffset]);
+			const s16 calValue = ApplyCalibration(rawValue, controller.second.calibData[i]);
+			buf[calibOffset++] = ((u16)calValue >> 0) & 0xFF;
+			buf[calibOffset++] = ((u16)calValue >> 8) & 0xFF;
+		}
+
+		memcpy(padData[i].data(), &buf[offset], 64);
+
+		if (controller.second.newVibrateData)
+		{
+			SendVibrateData(controller.second);
+			controller.second.newVibrateData = false;
+		}
+
+		i++;
+	}
+
 	auto data = GetControllerData();
 
-	int i = 0;
 	for (auto &bind : bindings)
 	{
 		i = bind.first;
-		Pad &pad = *bind.second;
+		Pad *pad = bind.second;
 		auto buf = data[i];
 
 		// these are added with previous value and divided to 'smooth' out the readings
@@ -653,114 +618,114 @@ void ds4_pad_handler::ThreadProc()
 		u16 lx, ly;
 		//std::tie(lx, ly) = ConvertToSquarePoint(buf[1], buf[2]);
 		std::tie(lx, ly) = ConvertToSquirclePoint(buf[1], buf[2]);
-		pad.m_sticks[0].m_value = (lx + pad.m_sticks[0].m_value) / 2; // LX
-		pad.m_sticks[1].m_value = (ly + pad.m_sticks[1].m_value) / 2; // LY
+		pad->m_sticks[0].m_value = (lx + pad->m_sticks[0].m_value) / 2; // LX
+		pad->m_sticks[1].m_value = (ly + pad->m_sticks[1].m_value) / 2; // LY
 
 		u16 rx, ry;
 		//std::tie(rx, ry) = ConvertToSquarePoint(buf[3], buf[4]);
 		std::tie(rx, ry) = ConvertToSquirclePoint(buf[3], buf[4]);
-		pad.m_sticks[2].m_value = (rx + pad.m_sticks[2].m_value) / 2; // RX
-		pad.m_sticks[3].m_value = (ry + pad.m_sticks[3].m_value) / 2; // RY
+		pad->m_sticks[2].m_value = (rx + pad->m_sticks[2].m_value) / 2; // RX
+		pad->m_sticks[3].m_value = (ry + pad->m_sticks[3].m_value) / 2; // RY
 
 																	  // l2 r2
-		pad.m_buttons[0].m_pressed = buf[8] > 0;
-		pad.m_buttons[0].m_value = buf[8];
-		pad.m_buttons[1].m_pressed = buf[9] > 0;
-		pad.m_buttons[1].m_value = buf[9];
+		pad->m_buttons[0].m_pressed = buf[8] > 0;
+		pad->m_buttons[0].m_value = buf[8];
+		pad->m_buttons[1].m_pressed = buf[9] > 0;
+		pad->m_buttons[1].m_value = buf[9];
 
 		// bleh, dpad in buffer is stored in a different state 
 		u8 dpadState = buf[5] & 0xf;
 		switch (dpadState)
 		{
 		case 0x08: // none pressed
-			pad.m_buttons[2].m_pressed = false;
-			pad.m_buttons[2].m_value = 0;
-			pad.m_buttons[3].m_pressed = false;
-			pad.m_buttons[3].m_value = 0;
-			pad.m_buttons[4].m_pressed = false;
-			pad.m_buttons[4].m_value = 0;
-			pad.m_buttons[5].m_pressed = false;
-			pad.m_buttons[5].m_value = 0;
+			pad->m_buttons[2].m_pressed = false;
+			pad->m_buttons[2].m_value = 0;
+			pad->m_buttons[3].m_pressed = false;
+			pad->m_buttons[3].m_value = 0;
+			pad->m_buttons[4].m_pressed = false;
+			pad->m_buttons[4].m_value = 0;
+			pad->m_buttons[5].m_pressed = false;
+			pad->m_buttons[5].m_value = 0;
 			break;
 		case 0x07: // NW...left and up
-			pad.m_buttons[2].m_pressed = true;
-			pad.m_buttons[2].m_value = 255;
-			pad.m_buttons[3].m_pressed = false;
-			pad.m_buttons[3].m_value = 0;
-			pad.m_buttons[4].m_pressed = true;
-			pad.m_buttons[4].m_value = 255;
-			pad.m_buttons[5].m_pressed = false;
-			pad.m_buttons[5].m_value = 0;
+			pad->m_buttons[2].m_pressed = true;
+			pad->m_buttons[2].m_value = 255;
+			pad->m_buttons[3].m_pressed = false;
+			pad->m_buttons[3].m_value = 0;
+			pad->m_buttons[4].m_pressed = true;
+			pad->m_buttons[4].m_value = 255;
+			pad->m_buttons[5].m_pressed = false;
+			pad->m_buttons[5].m_value = 0;
 			break;
 		case 0x06: // W..left
-			pad.m_buttons[2].m_pressed = false;
-			pad.m_buttons[2].m_value = 0;
-			pad.m_buttons[3].m_pressed = false;
-			pad.m_buttons[3].m_value = 0;
-			pad.m_buttons[4].m_pressed = true;
-			pad.m_buttons[4].m_value = 255;
-			pad.m_buttons[5].m_pressed = false;
-			pad.m_buttons[5].m_value = 0;
+			pad->m_buttons[2].m_pressed = false;
+			pad->m_buttons[2].m_value = 0;
+			pad->m_buttons[3].m_pressed = false;
+			pad->m_buttons[3].m_value = 0;
+			pad->m_buttons[4].m_pressed = true;
+			pad->m_buttons[4].m_value = 255;
+			pad->m_buttons[5].m_pressed = false;
+			pad->m_buttons[5].m_value = 0;
 			break;
 		case 0x05: // SW..left down
-			pad.m_buttons[2].m_pressed = false;
-			pad.m_buttons[2].m_value = 0;
-			pad.m_buttons[3].m_pressed = true;
-			pad.m_buttons[3].m_value = 255;
-			pad.m_buttons[4].m_pressed = true;
-			pad.m_buttons[4].m_value = 255;
-			pad.m_buttons[5].m_pressed = false;
-			pad.m_buttons[5].m_value = 0;
+			pad->m_buttons[2].m_pressed = false;
+			pad->m_buttons[2].m_value = 0;
+			pad->m_buttons[3].m_pressed = true;
+			pad->m_buttons[3].m_value = 255;
+			pad->m_buttons[4].m_pressed = true;
+			pad->m_buttons[4].m_value = 255;
+			pad->m_buttons[5].m_pressed = false;
+			pad->m_buttons[5].m_value = 0;
 			break;
 		case 0x04: // S..down
-			pad.m_buttons[2].m_pressed = false;
-			pad.m_buttons[2].m_value = 0;
-			pad.m_buttons[3].m_pressed = true;
-			pad.m_buttons[3].m_value = 255;
-			pad.m_buttons[4].m_pressed = false;
-			pad.m_buttons[4].m_value = 0;
-			pad.m_buttons[5].m_pressed = false;
-			pad.m_buttons[5].m_value = 0;
+			pad->m_buttons[2].m_pressed = false;
+			pad->m_buttons[2].m_value = 0;
+			pad->m_buttons[3].m_pressed = true;
+			pad->m_buttons[3].m_value = 255;
+			pad->m_buttons[4].m_pressed = false;
+			pad->m_buttons[4].m_value = 0;
+			pad->m_buttons[5].m_pressed = false;
+			pad->m_buttons[5].m_value = 0;
 			break;
 		case 0x03: // SE..down and right
-			pad.m_buttons[2].m_pressed = false;
-			pad.m_buttons[2].m_value = 0;
-			pad.m_buttons[3].m_pressed = true;
-			pad.m_buttons[3].m_value = 255;
-			pad.m_buttons[4].m_pressed = false;
-			pad.m_buttons[4].m_value = 0;
-			pad.m_buttons[5].m_pressed = true;
-			pad.m_buttons[5].m_value = 255;
+			pad->m_buttons[2].m_pressed = false;
+			pad->m_buttons[2].m_value = 0;
+			pad->m_buttons[3].m_pressed = true;
+			pad->m_buttons[3].m_value = 255;
+			pad->m_buttons[4].m_pressed = false;
+			pad->m_buttons[4].m_value = 0;
+			pad->m_buttons[5].m_pressed = true;
+			pad->m_buttons[5].m_value = 255;
 			break;
 		case 0x02: // E... right
-			pad.m_buttons[2].m_pressed = false;
-			pad.m_buttons[2].m_value = 0;
-			pad.m_buttons[3].m_pressed = false;
-			pad.m_buttons[3].m_value = 0;
-			pad.m_buttons[4].m_pressed = false;
-			pad.m_buttons[4].m_value = 0;
-			pad.m_buttons[5].m_pressed = true;
-			pad.m_buttons[5].m_value = 255;
+			pad->m_buttons[2].m_pressed = false;
+			pad->m_buttons[2].m_value = 0;
+			pad->m_buttons[3].m_pressed = false;
+			pad->m_buttons[3].m_value = 0;
+			pad->m_buttons[4].m_pressed = false;
+			pad->m_buttons[4].m_value = 0;
+			pad->m_buttons[5].m_pressed = true;
+			pad->m_buttons[5].m_value = 255;
 			break;
 		case 0x01: // NE.. up right
-			pad.m_buttons[2].m_pressed = true;
-			pad.m_buttons[2].m_value = 255;
-			pad.m_buttons[3].m_pressed = false;
-			pad.m_buttons[3].m_value = 0;
-			pad.m_buttons[4].m_pressed = false;
-			pad.m_buttons[4].m_value = 0;
-			pad.m_buttons[5].m_pressed = true;
-			pad.m_buttons[5].m_value = 255;
+			pad->m_buttons[2].m_pressed = true;
+			pad->m_buttons[2].m_value = 255;
+			pad->m_buttons[3].m_pressed = false;
+			pad->m_buttons[3].m_value = 0;
+			pad->m_buttons[4].m_pressed = false;
+			pad->m_buttons[4].m_value = 0;
+			pad->m_buttons[5].m_pressed = true;
+			pad->m_buttons[5].m_value = 255;
 			break;
 		case 0x00: // n.. up
-			pad.m_buttons[2].m_pressed = true;
-			pad.m_buttons[2].m_value = 255;
-			pad.m_buttons[3].m_pressed = false;
-			pad.m_buttons[3].m_value = 0;
-			pad.m_buttons[4].m_pressed = false;
-			pad.m_buttons[4].m_value = 0;
-			pad.m_buttons[5].m_pressed = false;
-			pad.m_buttons[5].m_value = 0;
+			pad->m_buttons[2].m_pressed = true;
+			pad->m_buttons[2].m_value = 255;
+			pad->m_buttons[3].m_pressed = false;
+			pad->m_buttons[3].m_value = 0;
+			pad->m_buttons[4].m_pressed = false;
+			pad->m_buttons[4].m_value = 0;
+			pad->m_buttons[5].m_pressed = false;
+			pad->m_buttons[5].m_value = 0;
 			break;
 		default:
 			fmt::throw_exception("ds4 dpad state encountered unexpected input");
@@ -770,31 +735,31 @@ void ds4_pad_handler::ThreadProc()
 		for (int i = 4; i < 8; ++i)
 		{
 			const bool pressed = ((buf[5] & (1 << i)) != 0);
-			pad.m_buttons[6 + i - 4].m_pressed = pressed;
-			pad.m_buttons[6 + i - 4].m_value = pressed ? 255 : 0;
+			pad->m_buttons[6 + i - 4].m_pressed = pressed;
+			pad->m_buttons[6 + i - 4].m_value = pressed ? 255 : 0;
 		}
 
 		// L1, R1
 		const bool l1press = ((buf[6] & (1 << 0)) != 0);
-		pad.m_buttons[10].m_pressed = l1press;
-		pad.m_buttons[10].m_value = l1press ? 255 : 0;
+		pad->m_buttons[10].m_pressed = l1press;
+		pad->m_buttons[10].m_value = l1press ? 255 : 0;
 
 		const bool l2press = ((buf[6] & (1 << 1)) != 0);
-		pad.m_buttons[11].m_pressed = l2press;
-		pad.m_buttons[11].m_value = l2press ? 255 : 0;
+		pad->m_buttons[11].m_pressed = l2press;
+		pad->m_buttons[11].m_value = l2press ? 255 : 0;
 
 		// select, start, l3, r3
 		for (int i = 4; i < 8; ++i)
 		{
 			const bool pressed = ((buf[6] & (1 << i)) != 0);
-			pad.m_buttons[12 + i - 4].m_pressed = pressed;
-			pad.m_buttons[12 + i - 4].m_value = pressed ? 255 : 0;
+			pad->m_buttons[12 + i - 4].m_pressed = pressed;
+			pad->m_buttons[12 + i - 4].m_value = pressed ? 255 : 0;
 		}
 
 #ifdef _WIN32
 		for (int i = 6; i < 16; i++)
 		{
-			if (pad.m_buttons[i].m_pressed)
+			if (pad->m_buttons[i].m_pressed)
 			{
 				SetThreadExecutionState(ES_SYSTEM_REQUIRED | ES_DISPLAY_REQUIRED);
 				break;
@@ -815,9 +780,9 @@ void ds4_pad_handler::ThreadProc()
 		accelY = accelY * 113 + 512;
 		accelZ = accelZ * 113 + 512;
 
-		pad.m_sensors[0].m_value = Clamp0To1023(accelX);
-		pad.m_sensors[1].m_value = Clamp0To1023(accelY);
-		pad.m_sensors[2].m_value = Clamp0To1023(accelZ);
+		pad->m_sensors[0].m_value = Clamp0To1023(accelX);
+		pad->m_sensors[1].m_value = Clamp0To1023(accelY);
+		pad->m_sensors[2].m_value = Clamp0To1023(accelZ);
 
 		// gyroX is yaw, which is all that we need
 		f32 gyroX = (((s16)((u16)(buf[16] << 8) | buf[15])) / static_cast<f32>(DS4_GYRO_RES_PER_DEG_S)) * -1;
@@ -827,7 +792,7 @@ void ds4_pad_handler::ThreadProc()
 		// convert to ds3
 		gyroX = gyroX * (123.f / 90.f) + 512;
 
-		pad.m_sensors[3].m_value = Clamp0To1023(gyroX);
+		pad->m_sensors[3].m_value = Clamp0To1023(gyroX);
 
 		i++;
 	}

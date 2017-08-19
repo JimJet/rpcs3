@@ -57,21 +57,14 @@ public:
 	~mm_joystick_handler();
 
 	void Init() override;
-	void Close();
 
 	std::vector<std::string> ListDevices() override;
-	void bindPadToDevice(std::vector<Pad>& pads, std::string& device) override;
+	void bindPadToDevice(Pad *pad, std::string& device) override;
 	void ThreadProc() override;
-
-private:
-	DWORD ThreadProcedure();
-	static DWORD WINAPI ThreadProcProxy(LPVOID parameter);
 
 private:
 	bool is_init;
 	u32 supportedJoysticks;
-	mutable bool active;
-	HANDLE thread;
 	JOYINFOEX    js_info;
 	JOYCAPS   js_caps;
 

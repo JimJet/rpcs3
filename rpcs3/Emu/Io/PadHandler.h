@@ -193,6 +193,14 @@ struct Pad
 	u16 m_sensor_z;
 	u16 m_sensor_g;
 
+	void Init(u32 port_status, u32 port_setting, u32 device_capability, u32 device_type)
+	{
+		m_port_status = port_status;
+		m_port_setting = port_setting;
+		m_device_capability = device_capability;
+		m_device_type = device_type;
+	}
+
 	Pad(u32 port_status, u32 port_setting, u32 device_capability, u32 device_type)
 		: m_buffer_cleared(true)
 		, m_port_status(port_status)
@@ -229,13 +237,6 @@ struct Pad
 	}
 };
 
-//struct PadInfo
-//{
-//	u32 max_connect;
-//	u32 now_connect;
-//	u32 system_info;
-//};
-
 class PadHandlerBase
 {
 protected:
@@ -257,5 +258,5 @@ public:
 	//Callback called during pad_thread::ThreadFunc
 	virtual void ThreadProc() { };
 	//Binds a Pad to a device
-	virtual void bindPadToDevice(std::vector<Pad>& pads, std::string& device) { };
+	virtual void bindPadToDevice(Pad *pad, std::string& device) { };
 };

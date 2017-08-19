@@ -53,8 +53,6 @@ class ds4_pad_handler final : public PadHandlerBase
 
 	std::array<std::array<u8, 64>, MAX_GAMEPADS> padData{};
 
-	semaphore<> mutex;
-
 	CRCPP::CRC::Table<u32, 32> crcTable{ CRCPP::CRC::CRC_32() };
 
 public:
@@ -88,18 +86,14 @@ public:
 	~ds4_pad_handler();
 
 	void Init() override;
-	void Close();
 
 	std::vector<std::string> ListDevices() override;
-	void bindPadToDevice(std::vector<Pad>& pads, std::string& device) override;
+	void bindPadToDevice(Pad *pad, std::string& device) override;
 	void ThreadProc() override;
-
-	//	PadInfo& GetInfo() override;
-//	std::vector<Pad>& GetPads() override;
-//	void SetRumble(const u32 pad, u8 largeMotor, bool smallMotor) override;
 
 private:
 	bool is_init;
+	u32 online;
 
 	// holds internal controller state change
 	std::array<bool, MAX_GAMEPADS> last_connection_status = {};

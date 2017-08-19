@@ -16,13 +16,12 @@ namespace {
 }
 
 
-mm_joystick_handler::mm_joystick_handler() : active(false), thread(nullptr), is_init(false)
+mm_joystick_handler::mm_joystick_handler() : is_init(false)
 {
 }
 
 mm_joystick_handler::~mm_joystick_handler()
 {
-	Close();
 }
 
 void mm_joystick_handler::Init()
@@ -51,22 +50,6 @@ void mm_joystick_handler::Init()
 	is_init = true;
 }
 
-void mm_joystick_handler::Close()
-{
-	if (active)
-	{
-		if (thread)
-		{
-			active = false;
-			if (WaitForSingleObject(thread, THREAD_TIMEOUT) != WAIT_OBJECT_0)
-				LOG_ERROR(GENERAL, "MMJoystick thread could not stop within %d milliseconds", (u32)THREAD_TIMEOUT);
-			thread = nullptr;
-		}
-	}
-
-	bindings.clear();
-}
-
 std::vector<std::string> mm_joystick_handler::ListDevices()
 {
 	std::vector<std::string> mm_pad_list;
@@ -82,42 +65,42 @@ std::vector<std::string> mm_joystick_handler::ListDevices()
 	return mm_pad_list;
 }
 
-void mm_joystick_handler::bindPadToDevice(std::vector<Pad>& pads, std::string& device)
+void mm_joystick_handler::bindPadToDevice(Pad *pad, std::string& device)
 {
 	g_mmjoystick_config.load();
-	pads.emplace_back(
+
+	pad->Init(
 		CELL_PAD_STATUS_DISCONNECTED,
 		CELL_PAD_SETTING_PRESS_OFF | CELL_PAD_SETTING_SENSOR_OFF,
 		CELL_PAD_CAPABILITY_PS3_CONFORMITY | CELL_PAD_CAPABILITY_PRESS_MODE,
 		CELL_PAD_DEV_TYPE_STANDARD
 	);
-	auto &pad = pads.back();
 
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.triangle, CELL_PAD_CTRL_TRIANGLE);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.circle, CELL_PAD_CTRL_CIRCLE);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.cross, CELL_PAD_CTRL_CROSS);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.square, CELL_PAD_CTRL_SQUARE);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.l2, CELL_PAD_CTRL_L2);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.r2, CELL_PAD_CTRL_R2);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.l1, CELL_PAD_CTRL_L1);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.r1, CELL_PAD_CTRL_R1);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, g_mmjoystick_config.start, CELL_PAD_CTRL_START);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, g_mmjoystick_config.select, CELL_PAD_CTRL_SELECT);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, g_mmjoystick_config.l3, CELL_PAD_CTRL_L3);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, g_mmjoystick_config.r3, CELL_PAD_CTRL_R3);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, 0x100/*CELL_PAD_CTRL_PS*/);// TODO: PS button support
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.triangle, CELL_PAD_CTRL_TRIANGLE);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.circle, CELL_PAD_CTRL_CIRCLE);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.cross, CELL_PAD_CTRL_CROSS);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.square, CELL_PAD_CTRL_SQUARE);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.l2, CELL_PAD_CTRL_L2);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.r2, CELL_PAD_CTRL_R2);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.l1, CELL_PAD_CTRL_L1);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, g_mmjoystick_config.r1, CELL_PAD_CTRL_R1);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, g_mmjoystick_config.start, CELL_PAD_CTRL_START);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, g_mmjoystick_config.select, CELL_PAD_CTRL_SELECT);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, g_mmjoystick_config.l3, CELL_PAD_CTRL_L3);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, g_mmjoystick_config.r3, CELL_PAD_CTRL_R3);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL2, 0, 0x100/*CELL_PAD_CTRL_PS*/);// TODO: PS button support
 
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, JOY_POVFORWARD, CELL_PAD_CTRL_UP);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, JOY_POVBACKWARD, CELL_PAD_CTRL_DOWN);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, JOY_POVLEFT, CELL_PAD_CTRL_LEFT);
-	pad.m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, JOY_POVRIGHT, CELL_PAD_CTRL_RIGHT);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, JOY_POVFORWARD, CELL_PAD_CTRL_UP);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, JOY_POVBACKWARD, CELL_PAD_CTRL_DOWN);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, JOY_POVLEFT, CELL_PAD_CTRL_LEFT);
+	pad->m_buttons.emplace_back(CELL_PAD_BTN_OFFSET_DIGITAL1, JOY_POVRIGHT, CELL_PAD_CTRL_RIGHT);
 
-	pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X, 0, 0);
-	pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y, 0, 0);
-	pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X, 0, 0);
-	pad.m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y, 0, 0);
+	pad->m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X, 0, 0);
+	pad->m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y, 0, 0);
+	pad->m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X, 0, 0);
+	pad->m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y, 0, 0);
 
-	bindings.push_back(&pad);
+	bindings.push_back(pad);
 }
 
 void mm_joystick_handler::ThreadProc()

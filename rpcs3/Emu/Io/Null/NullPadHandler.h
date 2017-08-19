@@ -18,7 +18,7 @@ public:
 		nulllist.push_back("Default Null Device");
 		return nulllist;
 	}
-	void bindPadToDevice(std::vector<Pad> &pads, std::string& device) override
+	void bindPadToDevice(Pad *pad, std::string& device) override
 	{
 	}
 
