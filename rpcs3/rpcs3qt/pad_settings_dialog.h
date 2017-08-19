@@ -52,7 +52,7 @@ namespace Ui {
 	class pad_settings_dialog;
 }
 
-class pad_settings_dialog : public QDialog, PadHandlerBase
+class pad_settings_dialog : public QDialog
 {
 	Q_OBJECT
 
@@ -68,7 +68,7 @@ private:
 
 public:
 	// TODO get Init to work
-	virtual void Init(const u32 max_connect) override;
+	//virtual void Init() override;
 	explicit pad_settings_dialog(QWidget *parent = 0);
 	~pad_settings_dialog();
 	void keyPressEvent(QKeyEvent *keyEvent) override;

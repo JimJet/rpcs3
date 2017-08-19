@@ -1,4 +1,4 @@
-﻿
+
 #include <QApplication>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -1102,8 +1102,8 @@ void main_window::CreateConnects()
 	connect(ui->confSystemAct, &QAction::triggered, [=]() { openSettings(4); });
 
 	connect(ui->confPadsAct, &QAction::triggered, this, [=](){
-		gamepads_settings_dialog *dlg = new gamepads_settings_dialog(this);
-		dlg->show();
+		gamepads_settings_dialog dlg(this);
+		dlg.exec();
 	});
 	connect(ui->confAutopauseManagerAct, &QAction::triggered, [=](){
 		auto_pause_settings_dialog dlg(this);
@@ -1257,7 +1257,7 @@ void main_window::CreateConnects()
 			ui->toolbar_fullscreen->setIcon(icon_fullscreen_off);
 		}
 	});
-	connect(ui->toolbar_controls, &QAction::triggered, [=]() { pad_settings_dialog dlg(this); dlg.exec(); });
+	//connect(ui->toolbar_controls, &QAction::triggered, [=]() { pad_settings_dialog dlg(this); dlg.exec(); });
 	connect(ui->toolbar_config, &QAction::triggered, [=]() { openSettings(0); });
 	connect(ui->toolbar_list, &QAction::triggered, [=]() { ui->setlistModeListAct->trigger(); });
 	connect(ui->toolbar_grid, &QAction::triggered, [=]() { ui->setlistModeGridAct->trigger(); });
