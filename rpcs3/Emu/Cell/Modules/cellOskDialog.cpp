@@ -21,7 +21,8 @@ s32 cellOskDialogLoadAsync(u32 container, vm::ptr<CellOskDialogParam> dialogPara
 
 	osk->on_close = [&](s32 status)
 	{
-		sysutil_send_system_cmd(status == CELL_MSGDIALOG_BUTTON_OK ? CELL_SYSUTIL_OSKDIALOG_FINISHED : CELL_SYSUTIL_OSKDIALOG_INPUT_CANCELED, 0);
+		if (status != CELL_MSGDIALOG_BUTTON_OK) sysutil_send_system_cmd(CELL_SYSUTIL_OSKDIALOG_INPUT_CANCELED, 0);
+		sysutil_send_system_cmd(CELL_SYSUTIL_OSKDIALOG_FINISHED, 0);
 		result = true;
 	};
 

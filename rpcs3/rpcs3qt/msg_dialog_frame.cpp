@@ -239,13 +239,9 @@ void msg_dialog_frame::CreateOsk(const std::string& msg, char16_t* osk_text)
 	osk_dialog->setLayout(layout);
 
 	//Events
-	connect(input, &QLineEdit::textChanged, [=] {
-		std::memset(osk_text_return, 0, 512 * sizeof(char16_t)); // TODO: use max length instead of default 512
-		std::memcpy(osk_text_return, reinterpret_cast<const char16_t*>(input->text().constData()), input->text().size() * sizeof(char16_t));
-		on_osk_input_entered();
-	});
-	connect(input, &QLineEdit::returnPressed, [=] { on_close(CELL_MSGDIALOG_BUTTON_OK); osk_dialog->accept(); });
-	connect(button_ok, &QAbstractButton::clicked, [=] { on_close(CELL_MSGDIALOG_BUTTON_OK); osk_dialog->accept(); });
+	connect(input, &QLineEdit::textChanged, [=] { on_osk_input_entered(); });
+	connect(input, &QLineEdit::returnPressed, [=] { std::memcpy(osk_text_return, reinterpret_cast<const char16_t*>(input->text().constData()), (input->text().size()+1) * sizeof(char16_t));  on_close(CELL_MSGDIALOG_BUTTON_OK); osk_dialog->accept(); });
+	connect(button_ok, &QAbstractButton::clicked, [=] { std::memcpy(osk_text_return, reinterpret_cast<const char16_t*>(input->text().constData()), (input->text().size()+1) * sizeof(char16_t));  on_close(CELL_MSGDIALOG_BUTTON_OK); osk_dialog->accept(); });
 	connect(osk_dialog, &QDialog::rejected, [=] {if (!type.disable_cancel) { on_close(CELL_MSGDIALOG_BUTTON_ESCAPE); }});
 
 	//Fix size
