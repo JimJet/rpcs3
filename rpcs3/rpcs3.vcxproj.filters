@@ -479,14 +479,20 @@
     <ClCompile Include="rpcs3qt\save_data_list_dialog.cpp">
       <Filter>Gui\saves</Filter>
     </ClCompile>
-    <ClCompile Include="rpcs3qt\bpmanager_panel.cpp">
-      <Filter>Gui</Filter>
+    <ClCompile Include="rpcs3qt\save_manager_dialog.cpp">
+      <Filter>Gui\saves</Filter>
     </ClCompile>
-    <ClCompile Include="rpcs3qt\gamepads_settings_dialog.cpp">
-      <Filter>Gui</Filter>
+    <ClCompile Include="QTGeneratedFiles\Release - LLVM\moc_save_manager_dialog.cpp">
+      <Filter>Generated Files\Release - LLVM</Filter>
     </ClCompile>
-    <ClCompile Include="pad_thread.cpp">
-      <Filter>Io</Filter>
+    <ClCompile Include="QTGeneratedFiles\Debug\moc_save_manager_dialog.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="QTGeneratedFiles\Release\moc_save_manager_dialog.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="QTGeneratedFiles\Debug - LLVM\moc_save_manager_dialog.cpp">
+      <Filter>Generated Files\Debug - LLVM</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -543,18 +549,6 @@
     </ClInclude>
     <ClInclude Include="rpcs3qt\save_data_dialog.h">
       <Filter>Gui\saves</Filter>
-    </ClInclude>
-    <ClInclude Include="rpcs3qt\bpmanager_panel.h">
-      <Filter>Gui</Filter>
-    </ClInclude>
-    <ClInclude Include="rpcs3qt\breakpoint.h">
-      <Filter>Gui</Filter>
-    </ClInclude>
-    <ClInclude Include="rpcs3qt\gamepads_settings_dialog.h">
-      <Filter>Gui</Filter>
-    </ClInclude>
-    <ClInclude Include="pad_thread.h">
-      <Filter>Io</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -658,6 +652,9 @@
       <Filter>Gui\saves</Filter>
     </CustomBuild>
     <CustomBuild Include="rpcs3qt\save_data_list_dialog.h">
+      <Filter>Gui\saves</Filter>
+    </CustomBuild>
+    <CustomBuild Include="rpcs3qt\save_manager_dialog.h">
       <Filter>Gui\saves</Filter>
     </CustomBuild>
   </ItemGroup>

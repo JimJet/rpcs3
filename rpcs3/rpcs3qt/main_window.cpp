@@ -9,7 +9,7 @@
 #include <QDesktopWidget>
 
 #include "vfs_dialog.h"
-#include "save_data_list_dialog.h"
+#include "save_manager_dialog.h"
 #include "kernel_explorer.h"
 #include "game_list_frame.h"
 #include "debugger_frame.h"
@@ -20,12 +20,10 @@
 #include "cg_disasm_window.h"
 #include "memory_string_searcher.h"
 #include "memory_viewer_panel.h"
-#include "bpmanager_panel.h"
 #include "rsx_debugger.h"
 #include "main_window.h"
 #include "emu_settings.h"
 #include "about_dialog.h"
-#include "gamepads_settings_dialog.h"
 
 #include <thread>
 
@@ -72,11 +70,13 @@ void main_window::Init()
 {
 	ui->setupUi(this);
 
-	// Load Icons: This needs to happen before any actions or buttons are created
-	RepaintToolBarIcons();
 	appIcon = QIcon(":/rpcs3.ico");
 
+	// hide utilities from the average user
+	ui->menuUtilities->menuAction()->setVisible(guiSettings->GetValue(GUI::m_showDebugTab).toBool());
+
 	// add toolbar widgets (crappy Qt designer is not able to)
+	ui->toolBar->setObjectName("mw_toolbar");
 	ui->sizeSlider->setRange(0, GUI::gl_max_slider_pos);
 	ui->sizeSlider->setSliderPosition(guiSettings->GetValue(GUI::gl_iconSize).toInt());
 	ui->toolBar->addWidget(ui->sizeSliderContainer);
@@ -102,6 +102,8 @@ void main_window::Init()
 
 	Q_EMIT RequestGlobalStylesheetChange(guiSettings->GetCurrentStylesheetPath());
 	ConfigureGuiFromSettings(true);
+	RepaintToolBarIcons();
+	gameListFrame->RepaintToolBarIcons();
 	
 	if (!utils::has_ssse3())
 	{
@@ -118,21 +120,24 @@ void main_window::Init()
 	fs::stat_t st;
 	if (!fs::stat(fs::get_config_dir() + "rpcs3.pdb", st) || st.is_directory || st.size < 1024 * 1024 * 100)
 #else
-	if (true)
+	if (false)
 #endif
 	{
-		//QMessageBox msg;
-		//msg.setWindowTitle("Experimental Build Warning");
-		//msg.setIcon(QMessageBox::Critical);
-		//msg.setTextFormat(Qt::RichText);
-		//msg.setText("Please understand that this build is not an official RPCS3 release.<br>This build contains changes that may break games, or even <b>damage</b> your data.<br>It's recommended to download and use the official build from <a href='https://rpcs3.net/download'>RPCS3 website</a>.<br><br>Build origin: " STRINGIZE(BRANCH) "<br>Do you wish to use this build anyway?");
-		//msg.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-		//msg.setDefaultButton(QMessageBox::No);
-		//
-		//if (msg.exec() == QMessageBox::No)
-		//{
-		//	std::exit(EXIT_SUCCESS);
-		//}
+		LOG_WARNING(GENERAL, "Experimental Build Warning! Build origin: " STRINGIZE(BRANCH));
+
+		QMessageBox msg;
+		msg.setWindowTitle("Experimental Build Warning");
+		msg.setWindowIcon(appIcon);
+		msg.setIcon(QMessageBox::Critical);
+		msg.setTextFormat(Qt::RichText);
+		msg.setText("Please understand that this build is not an official RPCS3 release.<br>This build contains changes that may break games, or even <b>damage</b> your data.<br>It's recommended to download and use the official build from <a href='https://rpcs3.net/download'>RPCS3 website</a>.<br><br>Build origin: " STRINGIZE(BRANCH) "<br>Do you wish to use this build anyway?");
+		msg.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+		msg.setDefaultButton(QMessageBox::No);
+
+		if (msg.exec() == QMessageBox::No)
+		{
+			std::exit(EXIT_SUCCESS);
+		}
 	}
 }
 
@@ -696,7 +701,16 @@ void main_window::SaveWindowState()
 
 void main_window::RepaintToolBarIcons()
 {
-	QColor newColor = guiSettings->GetValue(GUI::mw_toolIconColor).value<QColor>();
+	QColor newColor;
+
+	if (guiSettings->GetValue(GUI::m_enableUIColors).toBool())
+	{
+		newColor = guiSettings->GetValue(GUI::mw_toolIconColor).value<QColor>();
+	}
+	else
+	{
+		newColor = GUI::get_Label_Color("toolbar_icon_color");
+	}
 
 	icon_play = gui_settings::colorizedIcon(QIcon(":/Icons/play.png"), GUI::mw_tool_icon_color, newColor);
 	icon_pause = gui_settings::colorizedIcon(QIcon(":/Icons/pause.png"), GUI::mw_tool_icon_color, newColor);
@@ -893,7 +907,7 @@ void main_window::BootRecentAction(const QAction* act)
 			LOG_ERROR(GENERAL, "Recent Game not valid, removed from Boot Recent list: %s", sstr(pth));
 
 			// refill menu with actions
-			for (uint i = 0; i < m_recentGameActs.count(); i++)
+			for (int i = 0; i < m_recentGameActs.count(); i++)
 			{
 				m_recentGameActs[i]->setShortcut(tr("Ctrl+%1").arg(i + 1));
 				m_recentGameActs[i]->setToolTip(m_rg_entries.at(i).second);
@@ -1016,7 +1030,7 @@ void main_window::AddRecentAction(const q_string_pair& entry)
 	}
 	
 	// refill menu with actions
-	for (uint i = 0; i < m_recentGameActs.count(); i++)
+	for (int i = 0; i < m_recentGameActs.count(); i++)
 	{
 		m_recentGameActs[i]->setShortcut(tr("Ctrl+%1").arg(i+1));
 		m_recentGameActs[i]->setToolTip(m_rg_entries.at(i).second);
@@ -1028,14 +1042,23 @@ void main_window::AddRecentAction(const q_string_pair& entry)
 
 void main_window::RepaintToolbar()
 {
-	QColor tbc = guiSettings->GetValue(GUI::mw_toolBarColor).value<QColor>();
-	ui->toolBar->setStyleSheet(styleSheet().append(
-		"QToolBar { background-color: rgba(%1, %2, %3, %4); }"
-		"QToolBar::separator {background-color: rgba(%5, %6, %7, %8); width: 1px; margin-top: 2px; margin-bottom: 2px;}"
-		"QSlider { background-color: rgba(%1, %2, %3, %4); }"
-		"QLineEdit { background-color: rgba(%1, %2, %3, %4); }")
-		.arg(tbc.red()).arg(tbc.green()).arg(tbc.blue()).arg(tbc.alpha())
-		.arg(tbc.red() - 20).arg(tbc.green() - 20).arg(tbc.blue() - 20).arg(tbc.alpha() - 20));
+	if (guiSettings->GetValue(GUI::m_enableUIColors).toBool())
+	{
+		QColor tbc = guiSettings->GetValue(GUI::mw_toolBarColor).value<QColor>();
+
+		ui->toolBar->setStyleSheet(GUI::stylesheet + QString(
+			"QToolBar { background-color: rgba(%1, %2, %3, %4); }"
+			"QToolBar::separator {background-color: rgba(%5, %6, %7, %8); width: 1px; margin-top: 2px; margin-bottom: 2px;}"
+			"QSlider { background-color: rgba(%1, %2, %3, %4); }"
+			"QLineEdit { background-color: rgba(%1, %2, %3, %4); }")
+			.arg(tbc.red()).arg(tbc.green()).arg(tbc.blue()).arg(tbc.alpha())
+			.arg(tbc.red() - 20).arg(tbc.green() - 20).arg(tbc.blue() - 20).arg(tbc.alpha() - 20)
+		);
+	}
+	else
+	{
+		ui->toolBar->setStyleSheet(GUI::stylesheet);
+	}
 }
 
 void main_window::CreateActions()
@@ -1118,7 +1141,14 @@ void main_window::CreateConnects()
 		connect(&dlg, &settings_dialog::ToolBarRepaintRequest, this, &main_window::RepaintToolBarIcons);
 		connect(&dlg, &settings_dialog::ToolBarRepaintRequest, gameListFrame, &game_list_frame::RepaintToolBarIcons);
 		connect(&dlg, &settings_dialog::accepted, [this](){
-			gameListFrame->RepaintIcons(guiSettings->GetValue(GUI::gl_iconColor).value<QColor>());
+			if (guiSettings->GetValue(GUI::m_enableUIColors).toBool())
+			{
+				gameListFrame->RepaintIcons(guiSettings->GetValue(GUI::gl_iconColor).value<QColor>());
+			}
+			else
+			{
+				gameListFrame->RepaintIcons(GUI::get_Label_Color("gamelist_icon_background_color"));
+			}
 			RepaintToolbar();
 		});
 		dlg.exec();
@@ -1129,8 +1159,8 @@ void main_window::CreateConnects()
 	connect(ui->confIOAct,     &QAction::triggered, [=]() { openSettings(3); });
 	connect(ui->confSystemAct, &QAction::triggered, [=]() { openSettings(4); });
 
-	connect(ui->confPadsAct, &QAction::triggered, this, [=](){
-		gamepads_settings_dialog dlg(this);
+	connect(ui->confPadAct, &QAction::triggered, this, [=](){
+		pad_settings_dialog dlg(this);
 		dlg.exec();
 	});
 	connect(ui->confAutopauseManagerAct, &QAction::triggered, [=](){
@@ -1143,11 +1173,12 @@ void main_window::CreateConnects()
 		gameListFrame->Refresh(true); // dev-hdd0 may have changed. Refresh just in case.
 	});
 	connect(ui->confSavedataManagerAct, &QAction::triggered, [=](){
-		save_data_list_dialog* sdid = new save_data_list_dialog({}, 0, false, this);
+
+		save_manager_dialog* sdid = new save_manager_dialog();
 		sdid->show();
 	});
 	connect(ui->toolsCgDisasmAct, &QAction::triggered, [=](){
-		cg_disasm_window* cgdw = new cg_disasm_window(guiSettings, this);
+		cg_disasm_window* cgdw = new cg_disasm_window(guiSettings);
 		cgdw->show();
 	});
 	connect(ui->toolskernel_explorerAct, &QAction::triggered, [=](){
@@ -1165,10 +1196,6 @@ void main_window::CreateConnects()
 	connect(ui->toolsStringSearchAct, &QAction::triggered, [=](){
 		memory_string_searcher* mss = new memory_string_searcher(this);
 		mss->show();
-	});
-	connect(ui->toolsBreakpointManagerAct, &QAction::triggered, [=]() {
-		bpmanager_panel *bpm = new bpmanager_panel(this);
-		bpm->show();
 	});
 	connect(ui->toolsDecryptSprxLibsAct, &QAction::triggered, this, &main_window::DecryptSPRXLibraries);
 	connect(ui->showDebuggerAct, &QAction::triggered, [=](bool checked){
@@ -1253,7 +1280,7 @@ void main_window::CreateConnects()
 
 		resizeIcons(idx);
 	});
-	connect(gameListFrame, &game_list_frame::RequestSaveSliderPos, [=](const bool& save){ m_save_slider_pos = true; });
+	connect(gameListFrame, &game_list_frame::RequestSaveSliderPos, [=](const bool& save){ Q_UNUSED(save); m_save_slider_pos = true; });
 	connect(gameListFrame, &game_list_frame::RequestListModeActSet, [=](const bool& isList)
 	{
 		isList ? ui->setlistModeListAct->trigger() : ui->setlistModeGridAct->trigger();
@@ -1285,7 +1312,7 @@ void main_window::CreateConnects()
 			ui->toolbar_fullscreen->setIcon(icon_fullscreen_off);
 		}
 	});
-	//connect(ui->toolbar_controls, &QAction::triggered, [=]() { pad_settings_dialog dlg(this); dlg.exec(); });
+	connect(ui->toolbar_controls, &QAction::triggered, [=]() { pad_settings_dialog dlg(this); dlg.exec(); });
 	connect(ui->toolbar_config, &QAction::triggered, [=]() { openSettings(0); });
 	connect(ui->toolbar_list, &QAction::triggered, [=]() { ui->setlistModeListAct->trigger(); });
 	connect(ui->toolbar_grid, &QAction::triggered, [=]() { ui->setlistModeGridAct->trigger(); });
@@ -1382,7 +1409,7 @@ void main_window::ConfigureGuiFromSettings(bool configureAll)
 	}
 	m_recentGameActs.clear();
 	// Fill the recent games menu
-	for (uint i = 0; i < m_rg_entries.count(); i++)
+	for (int i = 0; i < m_rg_entries.count(); i++)
 	{
 		// create new action
 		QAction* act = CreateRecentAction(m_rg_entries[i], i + 1);

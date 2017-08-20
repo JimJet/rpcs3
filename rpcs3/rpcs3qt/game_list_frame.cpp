@@ -849,7 +849,16 @@ void game_list_frame::SetSearchText(const QString& text)
 
 void game_list_frame::RepaintToolBarIcons()
 {
-	QColor newColor = xgui_settings->GetValue(GUI::gl_toolIconColor).value<QColor>();
+	QColor newColor;
+
+	if (xgui_settings->GetValue(GUI::m_enableUIColors).toBool())
+	{
+		newColor = xgui_settings->GetValue(GUI::gl_toolIconColor).value<QColor>();
+	}
+	else
+	{
+		newColor = GUI::get_Label_Color("gamelist_toolbar_icon_color");
+	}
 
 	m_catActHDD.colored = gui_settings::colorizedIcon(QIcon(":/Icons/hdd_blue.png"), GUI::gl_tool_icon_color, newColor, true);
 	m_catActDisc.colored = gui_settings::colorizedIcon(QIcon(":/Icons/disc_blue.png"), GUI::gl_tool_icon_color, newColor, true);
@@ -971,7 +980,7 @@ void game_list_frame::PopulateGameGrid(uint maxCols, const QSize& image_size, co
 	}
 
 	// Get number of things that'll be in grid and precompute grid size.
-	int entries = 0;
+	uint entries = 0;
 	for (const GUI_GameInfo& game : m_game_data)
 	{
 		if (qstr(game.info.category) == category::disc_Game || qstr(game.info.category) == category::hdd_Game)
