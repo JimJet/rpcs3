@@ -9,6 +9,7 @@
 #include "../Emu/System.h"
 #include "../../Utilities/Config.h"
 #include "../../Utilities/File.h"
+#include "../Emu/Io/PadHandler.h"
 
 struct input_config final : cfg::node
 {
@@ -24,13 +25,13 @@ struct input_config final : cfg::node
 		{ this, "Player 7 Input", pad_handler::null } };
 
 	cfg::string player_device[7] = {
-		{ this, "Player 1 Device", "" },
-		{ this, "Player 2 Device", "" },
-		{ this, "Player 3 Device", "" },
-		{ this, "Player 4 Device", "" },
-		{ this, "Player 5 Device", "" },
-		{ this, "Player 6 Device", "" },
-		{ this, "Player 7 Device", "" } };
+		{ this, "Player 1 Device", "Keyboard" },
+		{ this, "Player 2 Device", "Default Null Device" },
+		{ this, "Player 3 Device", "Default Null Device" },
+		{ this, "Player 4 Device", "Default Null Device" },
+		{ this, "Player 5 Device", "Default Null Device" },
+		{ this, "Player 6 Device", "Default Null Device" },
+		{ this, "Player 7 Device", "Default Null Device" } };
 
 	bool load()
 	{
@@ -58,20 +59,19 @@ extern input_config input_cfg;
 class gamepads_settings_dialog : public QDialog
 {
 protected:
+	std::shared_ptr<PadHandlerBase> GetHandler(pad_handler type);
 	void ChangeInputType(int player);
 	void ChangeDevice(int player);
+	void ClickConfigButton(int player);
 	void SaveExit();
+	void CancelExit();
 
 protected:
 	QComboBox *co_inputtype[7];
 	QComboBox *co_deviceID[7];
-
-	bool exit;
+	QPushButton *bu_config[7];
 
 public:
 	gamepads_settings_dialog(QWidget* parent);
-	~gamepads_settings_dialog()
-	{
-		exit = true;
-	}
+	~gamepads_settings_dialog() = default;
 };

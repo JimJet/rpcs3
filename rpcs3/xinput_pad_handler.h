@@ -42,17 +42,17 @@ public:
 	xinput_pad_handler();
 	~xinput_pad_handler();
 
-	void Init() override;
+	bool Init() override;
 	void Close();
 
 	std::vector<std::string> ListDevices() override;
-	void bindPadToDevice(Pad *pad, std::string& device) override;
+	bool bindPadToDevice(Pad *pad, std::string& device) override;
 	void ThreadProc() override;
 
 private:
 	typedef void (WINAPI * PFN_XINPUTENABLE)(BOOL);
-	typedef DWORD(WINAPI * PFN_XINPUTGETSTATE)(DWORD, XINPUT_STATE *);
-	typedef DWORD(WINAPI * PFN_XINPUTSETSTATE)(DWORD, XINPUT_VIBRATION *);
+	typedef DWORD (WINAPI * PFN_XINPUTGETSTATE)(DWORD, XINPUT_STATE *);
+	typedef DWORD (WINAPI * PFN_XINPUTSETSTATE)(DWORD, XINPUT_VIBRATION *);
 
 private:
 	std::tuple<u16, u16> ConvertToSquirclePoint(u16 inX, u16 inY);

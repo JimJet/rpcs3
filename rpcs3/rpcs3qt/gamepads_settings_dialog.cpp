@@ -14,7 +14,6 @@ gamepads_settings_dialog::gamepads_settings_dialog(QWidget* parent)
 	: QDialog(parent)
 {
 	setWindowTitle(tr("Gamepads Settings"));
-	//setAttribute(Qt::WA_DeleteOnClose);
 
 	QVBoxLayout *dialog_layout = new QVBoxLayout();
 	QHBoxLayout *all_players = new QHBoxLayout();
@@ -45,11 +44,11 @@ gamepads_settings_dialog::gamepads_settings_dialog(QWidget* parent)
 		ppad_layout->addWidget(co_deviceID[i]);
 
 		QHBoxLayout *button_layout = new QHBoxLayout();
-		QPushButton *config_button = new QPushButton();
-		config_button->setText("Config");
-		button_layout->addSpacing(config_button->sizeHint().width()*0.50f);
-		button_layout->addWidget(config_button);
-		button_layout->addSpacing(config_button->sizeHint().width()*0.50f);
+		bu_config[i] = new QPushButton("Config");
+		bu_config[i]->setEnabled(false);
+		button_layout->addSpacing(bu_config[i]->sizeHint().width()*0.50f);
+		button_layout->addWidget(bu_config[i]);
+		button_layout->addSpacing(bu_config[i]->sizeHint().width()*0.50f);
 		ppad_layout->addLayout(button_layout);
 
 		grp_player->setLayout(ppad_layout);
@@ -57,16 +56,32 @@ gamepads_settings_dialog::gamepads_settings_dialog(QWidget* parent)
 
 		connect(co_inputtype[i], &QComboBox::currentTextChanged, [=] { ChangeInputType(i); });
 		connect(co_deviceID[i], &QComboBox::currentTextChanged, [=] { ChangeDevice(i); });
+		connect(bu_config[i], &QAbstractButton::clicked, [=] { ClickConfigButton(i); });
+
+		if (i == 3)
+		{
+			dialog_layout->addLayout(all_players);
+			all_players = new QHBoxLayout();
+			all_players->addStretch();
+		}
 	}
 
+	all_players->addStretch();
 	dialog_layout->addLayout(all_players);
-	QPushButton *ok_button = new QPushButton();
-	ok_button->setText("CELL_OK");
-	dialog_layout->addWidget(ok_button);
+
+	QHBoxLayout *buttons_layout = new QHBoxLayout();
+	QPushButton *ok_button = new QPushButton("OK");
+	buttons_layout->addWidget(ok_button);
+	QPushButton *cancel_button = new QPushButton("Cancel");
+	buttons_layout->addWidget(cancel_button);
+	buttons_layout->addStretch();
+	dialog_layout->addLayout(buttons_layout);
 
 	setLayout(dialog_layout);
+	layout()->setSizeConstraint(QLayout::SetFixedSize);
 
 	connect(ok_button, &QPushButton::pressed, this, &gamepads_settings_dialog::SaveExit);
+	connect(cancel_button, &QPushButton::pressed, this, &gamepads_settings_dialog::CancelExit);
 
 	//Set the values from config
 	for (int i = 0; i < 7; i++)
@@ -110,6 +125,15 @@ void gamepads_settings_dialog::SaveExit()
 	QDialog::accept();
 }
 
+void gamepads_settings_dialog::CancelExit()
+{
+	//Reloads config from file or defaults
+	input_cfg.from_default();
+	input_cfg.load();
+
+	QDialog::accept();
+}
+
 void gamepads_settings_dialog::ChangeDevice(int player)
 {
 	bool success;
@@ -120,6 +144,41 @@ void gamepads_settings_dialog::ChangeDevice(int player)
 	{
 		//Something went wrong
 	}
+}
+
+std::shared_ptr<PadHandlerBase> gamepads_settings_dialog::GetHandler(pad_handler type)
+{
+	std::shared_ptr<PadHandlerBase> ret_handler;
+
+	switch (type)
+	{
+	case pad_handler::null:
+		ret_handler = std::make_unique<NullPadHandler>();
+		break;
+	case pad_handler::keyboard:
+		ret_handler = std::make_unique<keyboard_pad_handler>();
+		break;
+	case pad_handler::ds4:
+		ret_handler = std::make_unique<ds4_pad_handler>();
+		break;
+#ifdef _MSC_VER
+	case pad_handler::xinput:
+		ret_handler = std::make_unique<xinput_pad_handler>();
+		break;
+#endif
+#ifdef _WIN32
+	case pad_handler::mm:
+		ret_handler = std::make_unique<mm_joystick_handler>();
+		break;
+#endif
+#ifdef HAVE_LIBEVDEV
+	case pad_handler::evdev:
+		ret_handler = std::make_unique<evdev_joystick_handler>();
+		break;
+#endif
+	}
+
+	return ret_handler;
 }
 
 void gamepads_settings_dialog::ChangeInputType(int player)
@@ -133,40 +192,11 @@ void gamepads_settings_dialog::ChangeInputType(int player)
 		//Something went wrong
 	}
 
-	std::unique_ptr<PadHandlerBase> cur_pad_handler;
-
-	switch (input_cfg.player_input[player])
-	{
-	case pad_handler::null:
-		cur_pad_handler = std::make_unique<NullPadHandler>();
-		break;
-	case pad_handler::keyboard:
-		cur_pad_handler = std::make_unique<keyboard_pad_handler>();
-		break;
-	case pad_handler::ds4:
-		cur_pad_handler = std::make_unique<ds4_pad_handler>();
-		break;
-#ifdef _MSC_VER
-	case pad_handler::xinput:
-		cur_pad_handler = std::make_unique<xinput_pad_handler>();
-		break;
-#endif
-#ifdef _WIN32
-	case pad_handler::mm:
-		cur_pad_handler = std::make_unique<mm_joystick_handler>();
-		break;
-#endif
-#ifdef HAVE_LIBEVDEV
-	case pad_handler::evdev:
-		cur_pad_handler = std::make_unique<evdev_joystick_handler>();
-		break;
-#endif
-	}
+	std::shared_ptr<PadHandlerBase> cur_pad_handler = GetHandler(input_cfg.player_input[player]);
 
 	std::vector<std::string> list_devices = cur_pad_handler->ListDevices();
 
 	co_deviceID[player]->clear();
-
 	for (int i = 0; i < list_devices.size(); i++) co_deviceID[player]->addItem(list_devices[i].c_str(), i);
 
 	if (list_devices.size() == 0)
@@ -178,5 +208,12 @@ void gamepads_settings_dialog::ChangeInputType(int player)
 	{
 		co_deviceID[player]->setEnabled(true);
 	}
+
+	bu_config[player]->setEnabled(cur_pad_handler->has_config());
 }
 
+void gamepads_settings_dialog::ClickConfigButton(int player)
+{
+	std::shared_ptr<PadHandlerBase> cur_pad_handler = GetHandler(input_cfg.player_input[player]);
+	if (cur_pad_handler->has_config()) cur_pad_handler->ConfigController(input_cfg.player_device[player]);
+}

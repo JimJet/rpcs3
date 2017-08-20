@@ -24,8 +24,10 @@ mm_joystick_handler::~mm_joystick_handler()
 {
 }
 
-void mm_joystick_handler::Init()
+bool mm_joystick_handler::Init()
 {
+	if (is_init) return true;
+
 	supportedJoysticks = joyGetNumDevs();
 	if (supportedJoysticks > 0)
 	{
@@ -44,29 +46,28 @@ void mm_joystick_handler::Init()
 	if (!JoyPresent)
 	{
 		LOG_ERROR(GENERAL, "Joystick not found");
-		return;
+		return false;
 	}
 
 	is_init = true;
+	return true;
 }
 
 std::vector<std::string> mm_joystick_handler::ListDevices()
 {
 	std::vector<std::string> mm_pad_list;
 
-	if (!is_init)
-	{
-		Init();
-		if (!is_init) return mm_pad_list;
-	}
+	if (!Init()) return mm_pad_list;
 
 	mm_pad_list.push_back("MMJoy Pad");
 
 	return mm_pad_list;
 }
 
-void mm_joystick_handler::bindPadToDevice(Pad *pad, std::string& device)
+bool mm_joystick_handler::bindPadToDevice(Pad *pad, std::string& device)
 {
+	if (!Init()) return false;
+
 	g_mmjoystick_config.load();
 
 	pad->Init(
@@ -101,6 +102,8 @@ void mm_joystick_handler::bindPadToDevice(Pad *pad, std::string& device)
 	pad->m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y, 0, 0);
 
 	bindings.push_back(pad);
+
+	return true;
 }
 
 void mm_joystick_handler::ThreadProc()

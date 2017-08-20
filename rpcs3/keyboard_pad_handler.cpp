@@ -4,14 +4,24 @@
 
 #include <QApplication>
 
+#include "rpcs3qt\pad_settings_dialog.h"
+
 keyboard_pad_config g_kbpad_config;
 
-void keyboard_pad_handler::Init()
+bool keyboard_pad_handler::Init()
 {
+	return true;
 }
 
 keyboard_pad_handler::keyboard_pad_handler() : QObject()
 {
+	b_has_config = true;
+}
+
+void keyboard_pad_handler::ConfigController(std::string device)
+{
+	pad_settings_dialog dlg(this);
+	dlg.exec();
 }
 
 void keyboard_pad_handler::Key(const u32 code, bool pressed, u16 value)
@@ -133,8 +143,10 @@ std::vector<std::string> keyboard_pad_handler::ListDevices()
 	return list_devices;
 }
 
-void keyboard_pad_handler::bindPadToDevice(Pad *pad, std::string& device)
+bool keyboard_pad_handler::bindPadToDevice(Pad *pad, std::string& device)
 {
+	if (device != "Keyboard") return false;
+
 	g_kbpad_config.load();
 
 	//Fixed assign change, default is both sensor and press off
@@ -169,6 +181,8 @@ void keyboard_pad_handler::bindPadToDevice(Pad *pad, std::string& device)
 	pad->m_sticks.emplace_back(CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y, g_kbpad_config.right_stick_up, g_kbpad_config.right_stick_down);
 
 	bindings.push_back(pad);
+
+	return true;
 }
 
 void keyboard_pad_handler::ThreadProc()

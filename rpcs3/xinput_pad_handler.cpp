@@ -43,9 +43,9 @@ xinput_pad_handler::~xinput_pad_handler()
 	Close();
 }
 
-void xinput_pad_handler::Init()
+bool xinput_pad_handler::Init()
 {
-	if (is_init) return;
+	if (is_init) return true;
 
 	for (auto it : LIBRARY_FILENAMES)
 	{
@@ -74,7 +74,7 @@ void xinput_pad_handler::Init()
 		}
 	}
 
-	if (!is_init) return;
+	if (!is_init) return false;
 
 	xinput_cfg.load();
 	if (!xinput_cfg.exist()) xinput_cfg.save();
@@ -82,6 +82,8 @@ void xinput_pad_handler::Init()
 	squircle_factor = xinput_cfg.padsquircling / 1000.f;
 	left_stick_deadzone = xinput_cfg.lstickdeadzone;
 	right_stick_deadzone = xinput_cfg.rstickdeadzone;
+
+	return true;
 }
 
 void xinput_pad_handler::Close()
@@ -221,11 +223,7 @@ std::vector<std::string> xinput_pad_handler::ListDevices()
 {
 	std::vector<std::string> xinput_pads_list;
 
-	if (!is_init)
-	{
-		Init();
-		if (!is_init) return xinput_pads_list;
-	}
+	if (!Init()) return xinput_pads_list;
 
 	for (DWORD i = 0; i < MAX_GAMEPADS; i++)
 	{
@@ -239,8 +237,16 @@ std::vector<std::string> xinput_pad_handler::ListDevices()
 	return xinput_pads_list;
 }
 
-void xinput_pad_handler::bindPadToDevice(Pad *pad, std::string& device)
+bool xinput_pad_handler::bindPadToDevice(Pad *pad, std::string& device)
 {
+	//Convert device string to u32 representing xinput device number
+	u32 device_number = 0;
+	size_t pos = device.find("Xinput Pad #");
+
+	if (pos != std::string::npos) device_number = std::stoul(device.substr(pos + 12));
+
+	if (pos == std::string::npos || device_number >= MAX_GAMEPADS) return false;
+
 	pad->Init(
 		CELL_PAD_STATUS_DISCONNECTED,
 		CELL_PAD_SETTING_PRESS_OFF | CELL_PAD_SETTING_SENSOR_OFF,
@@ -275,11 +281,6 @@ void xinput_pad_handler::bindPadToDevice(Pad *pad, std::string& device)
 	pad->m_vibrateMotors.emplace_back(true, 0);
 	pad->m_vibrateMotors.emplace_back(false, 0);
 
-	//Convert device string to u32 representing xinput device number
-	u32 device_number = 0;
-	size_t pos = device.find("Xinput Pad #");
-	if (pos != std::string::npos) device_number = std::stoul(device.substr(pos + 12));
-	
 	bindings.push_back(std::make_pair(device_number, pad));
 }
 

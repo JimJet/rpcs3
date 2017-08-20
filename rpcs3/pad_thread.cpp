@@ -30,6 +30,10 @@ void pad_thread::Init(const u32 max_connect)
 
 	std::shared_ptr<keyboard_pad_handler> keyptr;
 
+	//Always have a Null Pad Handler
+	std::shared_ptr<NullPadHandler> nullpad = std::make_shared<NullPadHandler>();
+	handlers.emplace(pad_handler::null, nullpad);
+
 	m_pads.reserve(7); //hack for now
 
 	for (u32 i = 0; i < m_info.now_connect; i++)
@@ -44,9 +48,6 @@ void pad_thread::Init(const u32 max_connect)
 		{
 			switch (input_cfg.player_input[i])
 			{
-			case pad_handler::null:
-				cur_pad_handler = std::make_shared<NullPadHandler>();
-				break;
 			case pad_handler::keyboard:
 				keyptr = std::make_shared<keyboard_pad_handler>();
 				keyptr->moveToThread((QThread *)curthread);
@@ -82,7 +83,11 @@ void pad_thread::Init(const u32 max_connect)
 			CELL_PAD_CAPABILITY_PS3_CONFORMITY | CELL_PAD_CAPABILITY_PRESS_MODE | CELL_PAD_CAPABILITY_ACTUATOR,
 			CELL_PAD_DEV_TYPE_STANDARD
 		);
-		cur_pad_handler->bindPadToDevice(&m_pads.back(), input_cfg.player_device[i].to_string());
+		if (cur_pad_handler->bindPadToDevice(&m_pads.back(), input_cfg.player_device[i].to_string()) == false)
+		{
+			//Failed to bind the device to cur_pad_handler so binds to NullPadHandler
+			nullpad->bindPadToDevice(&m_pads.back(), input_cfg.player_device[i].to_string());
+		}
 	}
 
 	thread = std::make_shared<std::thread>(&pad_thread::ThreadFunc, this);

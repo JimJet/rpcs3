@@ -56,10 +56,10 @@ public:
 	mm_joystick_handler();
 	~mm_joystick_handler();
 
-	void Init() override;
+	bool Init() override;
 
 	std::vector<std::string> ListDevices() override;
-	void bindPadToDevice(Pad *pad, std::string& device) override;
+	bool bindPadToDevice(Pad *pad, std::string& device) override;
 	void ThreadProc() override;
 
 private:

@@ -141,7 +141,7 @@
      <x>0</x>
      <y>0</y>
      <width>1058</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <property name="contextMenuPolicy">
@@ -420,9 +420,12 @@
     <string>Configure Graphics</string>
    </property>
   </action>
-  <action name="confPadAct">
+  <action name="confPadsAct">
    <property name="text">
-    <string>Keyboard</string>
+    <string>Pads</string>
+   </property>
+   <property name="iconText">
+    <string>Pads</string>
    </property>
    <property name="toolTip">
     <string>Configure Controls</string>

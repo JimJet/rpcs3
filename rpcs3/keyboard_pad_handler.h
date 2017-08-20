@@ -56,7 +56,7 @@ struct keyboard_pad_config final : cfg::node
 class keyboard_pad_handler final : public QObject, public PadHandlerBase
 {
 public:
-	void Init() override;
+	bool Init() override;
 
 	keyboard_pad_handler();
 
@@ -67,8 +67,9 @@ public:
 	bool eventFilter(QObject* obj, QEvent* ev) override;
 
 	std::vector<std::string> ListDevices() override;
-	void bindPadToDevice(Pad *pad, std::string& device) override;
+	bool bindPadToDevice(Pad *pad, std::string& device) override;
 	void ThreadProc() override;
+	void ConfigController(std::string device) override;
 
 protected:
 	void Key(const u32 code, bool pressed, u16 value = 255);

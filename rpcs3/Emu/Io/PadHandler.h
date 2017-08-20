@@ -243,20 +243,17 @@ protected:
 	bool b_has_config = false;
 
 public:
-	virtual void Init() { };
+	virtual bool Init() { return true; };
 	virtual ~PadHandlerBase() = default;
-
-	//std::vector<Button>& GetButtons(const u32 pad) { return m_pads[pad].m_buttons; }
-	//std::vector<AnalogStick>& GetSticks(const u32 pad) { return m_pads[pad].m_sticks; }
 
 	//Does it have GUI Config?
 	bool has_config() { return b_has_config; };
-	//Sets window to config the controller
-	virtual void ConfigController() { };
+	//Sets window to config the controller(optional)
+	virtual void ConfigController(std::string device) {};
 	//Return list of devices for that handler
-	virtual std::vector<std::string> ListDevices() { std::vector<std::string> test; return test; };
+	virtual std::vector<std::string> ListDevices() = 0;
 	//Callback called during pad_thread::ThreadFunc
-	virtual void ThreadProc() { };
+	virtual void ThreadProc() = 0;
 	//Binds a Pad to a device
-	virtual void bindPadToDevice(Pad *pad, std::string& device) { };
+	virtual bool bindPadToDevice(Pad *pad, std::string& device) = 0;
 };
