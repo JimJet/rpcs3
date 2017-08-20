@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Emu/System.h"
 #include "Emu/IdManager.h"
 #include "Emu/Cell/PPUModule.h"
@@ -48,6 +48,7 @@ extern void sysutil_register_cb(std::function<s32(ppu_thread&)>&& cb)
 
 extern void sysutil_send_system_cmd(u64 status, u64 param)
 {
+	LOG_ERROR(GENERAL, "Sending sysutil message 0x%llx with param 0x%llx", status, param);
 	if (const auto cbm = fxm::get<sysutil_cb_manager>())
 	{
 		for (auto& cb : cbm->callbacks)

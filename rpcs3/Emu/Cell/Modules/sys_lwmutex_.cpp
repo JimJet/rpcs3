@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Emu/Memory/Memory.h"
 #include "Emu/IdManager.h"
 #include "Emu/System.h"
@@ -94,7 +94,7 @@ error_code sys_lwmutex_destroy(ppu_thread& ppu, vm::ptr<sys_lwmutex_t> lwmutex)
 
 error_code sys_lwmutex_lock(ppu_thread& ppu, vm::ptr<sys_lwmutex_t> lwmutex, u64 timeout)
 {
-	sysPrxForUser.trace("sys_lwmutex_lock(lwmutex=*0x%x[0x%x], timeout=0x%llx)", lwmutex, lwmutex->sleep_queue, timeout);
+	//sysPrxForUser.trace("sys_lwmutex_lock(lwmutex=*0x%x[0x%x], timeout=0x%llx)", lwmutex, lwmutex->sleep_queue, timeout);
 
 	if (g_avoid_lwm)
 	{
@@ -267,7 +267,7 @@ error_code sys_lwmutex_trylock(ppu_thread& ppu, vm::ptr<sys_lwmutex_t> lwmutex)
 
 error_code sys_lwmutex_unlock(ppu_thread& ppu, vm::ptr<sys_lwmutex_t> lwmutex)
 {
-	sysPrxForUser.trace("sys_lwmutex_unlock(lwmutex=*0x%x[0x%x])", lwmutex, lwmutex->sleep_queue);
+	//sysPrxForUser.trace("sys_lwmutex_unlock(lwmutex=*0x%x[0x%x])", lwmutex, lwmutex->sleep_queue);
 
 	if (g_avoid_lwm)
 	{
