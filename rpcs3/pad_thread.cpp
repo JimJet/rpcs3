@@ -86,6 +86,7 @@ void pad_thread::Init(const u32 max_connect)
 		if (cur_pad_handler->bindPadToDevice(&m_pads.back(), input_cfg.player_device[i].to_string()) == false)
 		{
 			//Failed to bind the device to cur_pad_handler so binds to NullPadHandler
+			LOG_ERROR(GENERAL, "Failed to bind device %s to handler %s", input_cfg.player_device[i].to_string(), input_cfg.player_input[i].to_string());
 			nullpad->bindPadToDevice(&m_pads.back(), input_cfg.player_device[i].to_string());
 		}
 	}

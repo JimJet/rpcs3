@@ -807,10 +807,13 @@
      <normaloff>:/Icons/controls.png</normaloff>:/Icons/controls.png</iconset>
    </property>
    <property name="text">
-    <string>Keyboard</string>
+    <string>Controls</string>
+   </property>
+   <property name="iconText">
+    <string>Controls</string>
    </property>
    <property name="toolTip">
-    <string>Configure keyboard</string>
+    <string>Configure controls</string>
    </property>
   </action>
   <action name="toolbar_snap">

@@ -281,7 +281,7 @@ bool xinput_pad_handler::bindPadToDevice(Pad *pad, std::string& device)
 	pad->m_vibrateMotors.emplace_back(true, 0);
 	pad->m_vibrateMotors.emplace_back(false, 0);
 
-	bindings.push_back(std::make_pair(device_number, pad));
+	bindings.emplace_back(device_number, pad);
 }
 
 #endif

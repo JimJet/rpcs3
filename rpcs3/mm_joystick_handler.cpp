@@ -37,6 +37,7 @@ bool mm_joystick_handler::Init()
 	{
 		LOG_ERROR(GENERAL, "Driver doesn't support Joysticks");
 	}
+
 	js_info.dwSize = sizeof(js_info);
 	js_info.dwFlags = JOY_RETURNALL;
 	joyGetDevCaps(JOYSTICKID1, &js_caps, sizeof(js_caps));
@@ -113,40 +114,40 @@ void mm_joystick_handler::ThreadProc()
 
 	for (u32 i = 0; i != bindings.size(); ++i)
 	{
-		auto &pad = *bindings[i];
+		Pad *pad = bindings[i];
 		status = joyGetPosEx(JOYSTICKID1, &js_info);
 
 		switch (status)
 		{
 		case JOYERR_UNPLUGGED:
 			if (last_connection_status[i] == true)
-				pad.m_port_status |= CELL_PAD_STATUS_ASSIGN_CHANGES;
+				pad->m_port_status |= CELL_PAD_STATUS_ASSIGN_CHANGES;
 			last_connection_status[i] = false;
-			pad.m_port_status &= ~CELL_PAD_STATUS_CONNECTED;
+			pad->m_port_status &= ~CELL_PAD_STATUS_CONNECTED;
 			break;
 
 		case JOYERR_NOERROR:
 			++online;
 			if (last_connection_status[i] == false)
-				pad.m_port_status |= CELL_PAD_STATUS_ASSIGN_CHANGES;
+				pad->m_port_status |= CELL_PAD_STATUS_ASSIGN_CHANGES;
 			last_connection_status[i] = true;
-			pad.m_port_status |= CELL_PAD_STATUS_CONNECTED;
+			pad->m_port_status |= CELL_PAD_STATUS_CONNECTED;
 			for (DWORD j = 0; j <= 12; j++)
 			{
-				bool pressed = js_info.dwButtons & pad.m_buttons[j].m_keyCode;
-				pad.m_buttons[j].m_pressed = pressed;
-				pad.m_buttons[j].m_value = pressed ? 255 : 0;
+				bool pressed = js_info.dwButtons & pad->m_buttons[j].m_keyCode;
+				pad->m_buttons[j].m_pressed = pressed;
+				pad->m_buttons[j].m_value = pressed ? 255 : 0;
 			}
 			for (DWORD j = 13; j <= 16; j++)//POV aka digital pad
 			{
-				bool pressed = js_info.dwPOV == pad.m_buttons[j].m_keyCode;
-				pad.m_buttons[j].m_pressed = pressed;
-				pad.m_buttons[j].m_value = pressed ? 255 : 0;
+				bool pressed = js_info.dwPOV == pad->m_buttons[j].m_keyCode;
+				pad->m_buttons[j].m_pressed = pressed;
+				pad->m_buttons[j].m_value = pressed ? 255 : 0;
 			}
-			pad.m_sticks[0].m_value = ConvertAxis(js_info.dwXpos);
-			pad.m_sticks[1].m_value = ConvertAxis(js_info.dwYpos);
-			pad.m_sticks[2].m_value = ConvertAxis(js_info.dwZpos);
-			pad.m_sticks[3].m_value = ConvertAxis(js_info.dwRpos);
+			pad->m_sticks[0].m_value = ConvertAxis(js_info.dwXpos);
+			pad->m_sticks[1].m_value = ConvertAxis(js_info.dwYpos);
+			pad->m_sticks[2].m_value = ConvertAxis(js_info.dwZpos);
+			pad->m_sticks[3].m_value = ConvertAxis(js_info.dwRpos);
 			break;
 		}
 	}

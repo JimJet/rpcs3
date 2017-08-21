@@ -125,7 +125,7 @@ namespace
 		return (u32)(((u32)buf[0] << 0) + ((u32)buf[1] << 8) + ((u32)buf[2] << 16) + ((u32)buf[3] << 24));
 	}
 }
-ds4_pad_handler::ds4_pad_handler() : is_init(false), online(0)
+ds4_pad_handler::ds4_pad_handler() : is_init(false)
 {
 
 }
@@ -325,7 +325,6 @@ void ds4_pad_handler::ProcessData()
 void ds4_pad_handler::UpdateRumble()
 {
 	// todo: give unique identifier to this instead of port
-	u32 i = 0;
 	for (auto &bind : bindings)
 	{
 		std::shared_ptr<DS4Device> device = bind.first;
@@ -428,7 +427,7 @@ bool ds4_pad_handler::GetCalibrationData(std::shared_ptr<DS4Device> ds4Dev)
 void ds4_pad_handler::CheckAddDevice(hid_device* hidDevice, hid_device_info* hidDevInfo)
 {
 	std::string serial = "";
-	std::shared_ptr<DS4Device> ds4Dev;
+	std::shared_ptr<DS4Device> ds4Dev = std::make_shared<DS4Device>();
 	ds4Dev->hidDevice = hidDevice;
 	// There isnt a nice 'portable' way with hidapi to detect bt vs wired as the pid/vid's are the same
 	// Let's try getting 0x81 feature report, which should will return mac address on wired, and should error on bluetooth
@@ -549,7 +548,7 @@ std::vector<std::string> ds4_pad_handler::ListDevices()
 
 	for (auto& pad : controllers)
 	{
-		ds4_pads_list.push_back("Ds4 Pad #" + pad.first);
+		ds4_pads_list.emplace_back("Ds4 Pad #" + pad.first);
 	}
 
 	return ds4_pads_list;
@@ -577,7 +576,7 @@ bool ds4_pad_handler::bindPadToDevice(Pad *pad, std::string& device)
 	if (device_id == nullptr) return false;
 
 	pad->Init(
-		CELL_PAD_STATUS_DISCONNECTED,
+		CELL_PAD_STATUS_CONNECTED,
 		CELL_PAD_SETTING_PRESS_OFF | CELL_PAD_SETTING_SENSOR_OFF,
 		CELL_PAD_CAPABILITY_PS3_CONFORMITY | CELL_PAD_CAPABILITY_PRESS_MODE | CELL_PAD_CAPABILITY_HP_ANALOG_STICK | CELL_PAD_CAPABILITY_ACTUATOR | CELL_PAD_CAPABILITY_SENSOR_MODE,
 		CELL_PAD_DEV_TYPE_STANDARD
@@ -621,19 +620,19 @@ bool ds4_pad_handler::bindPadToDevice(Pad *pad, std::string& device)
 	pad->m_vibrateMotors.emplace_back(true, 0);
 	pad->m_vibrateMotors.emplace_back(false, 0);
 
-	bindings.push_back(std::make_pair(device_id, pad));
+	bindings.emplace_back(device_id, pad);
 }
 
 void ds4_pad_handler::ThreadProc()
 {
-	u32 i = 0;
-	std::array<u8, 78> buf{};
-
 	UpdateRumble();
 
-	for (auto &controller : bindings)
+	std::array<u8, 78> buf{};
+
+	for (auto &bind : bindings)
 	{
-		std::shared_ptr<DS4Device> device = controller.first;
+		std::shared_ptr<DS4Device> device = bind.first;
+		Pad *thepad = bind.second;
 
 		if (device->hidDevice == nullptr)
 		{
@@ -643,15 +642,15 @@ void ds4_pad_handler::ThreadProc()
 			{
 				hid_set_nonblocking(dev, 1);
 				device->hidDevice = dev;
+				thepad->m_port_status = CELL_PAD_STATUS_CONNECTED|CELL_PAD_STATUS_ASSIGN_CHANGES;
 			}
 			else
 			{
 				// nope, not there
+				thepad->m_port_status = CELL_PAD_STATUS_DISCONNECTED|CELL_PAD_STATUS_ASSIGN_CHANGES;
 				continue;
 			}
 		}
-
-		online++;
 
 		const int res = hid_read(device->hidDevice, buf.data(), device->btCon ? 78 : 64);
 		if (res == -1)
@@ -662,6 +661,12 @@ void ds4_pad_handler::ThreadProc()
 			continue;
 		}
 
+		if (device->newVibrateData)
+		{
+			SendVibrateData(device);
+			device->newVibrateData = false;
+		}
+
 		// no data? keep going
 		if (res == 0)
 			continue;
@@ -670,9 +675,9 @@ void ds4_pad_handler::ThreadProc()
 		if (device->btCon && buf[0] == 0x1)
 		{
 			// tells controller to send 0x11 reports
-			std::array<u8, 64> buf{};
-			buf[0] = 0x2;
-			hid_get_feature_report(device->hidDevice, buf.data(), buf.size());
+			std::array<u8, 64> buf_error{};
+			buf_error[0] = 0x2;
+			hid_get_feature_report(device->hidDevice, buf_error.data(), buf_error.size());
 			continue;
 		}
 
@@ -707,14 +712,6 @@ void ds4_pad_handler::ThreadProc()
 		}
 
 		memcpy(device->padData.data(), &buf[offset], 64);
-
-		if (device->newVibrateData)
-		{
-			SendVibrateData(controller.first);
-			device->newVibrateData = false;
-		}
-
-		i++;
 	}
 
 	ProcessData();

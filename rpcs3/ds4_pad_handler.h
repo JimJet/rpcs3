@@ -65,7 +65,6 @@ public:
 
 private:
 	bool is_init;
-	u32 online;
 
 	// holds internal controller state change
 	std::array<bool, MAX_GAMEPADS> last_connection_status = {};

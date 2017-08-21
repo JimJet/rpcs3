@@ -70,9 +70,9 @@ gamepads_settings_dialog::gamepads_settings_dialog(QWidget* parent)
 	dialog_layout->addLayout(all_players);
 
 	QHBoxLayout *buttons_layout = new QHBoxLayout();
-	QPushButton *ok_button = new QPushButton("OK");
+	QPushButton *ok_button = new QPushButton(tr("OK"));
 	buttons_layout->addWidget(ok_button);
-	QPushButton *cancel_button = new QPushButton("Cancel");
+	QPushButton *cancel_button = new QPushButton(tr("Cancel"));
 	buttons_layout->addWidget(cancel_button);
 	buttons_layout->addStretch();
 	dialog_layout->addLayout(buttons_layout);
@@ -201,7 +201,7 @@ void gamepads_settings_dialog::ChangeInputType(int player)
 
 	if (list_devices.size() == 0)
 	{
-		co_deviceID[player]->addItem("No Device Detected", -1);
+		co_deviceID[player]->addItem(tr("No Device Detected"), -1);
 		co_deviceID[player]->setEnabled(false);
 	}
 	else
