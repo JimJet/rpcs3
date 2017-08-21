@@ -25,7 +25,7 @@ Q_SIGNALS:
 	void GuiSettingsSyncRequest();
 	void GuiStylesheetRequest(const QString& path);
 	void GuiSettingsSaveRequest();
-	void ToolBarRepaintRequest();
+	void GuiRepaintRequest();
 private Q_SLOTS:
 	void OnBackupCurrentConfig();
 	void OnApplyConfig();
@@ -34,8 +34,8 @@ private:
 	//emulator tab
 	void AddConfigs();
 	void AddStylesheets();
-	QString m_startingStylesheet;
-	QString m_startingConfig;
+	QString m_currentStylesheet;
+	QString m_currentConfig;
 	//gpu tab
 	QString m_oldRender = "";
 	bool m_isD3D12 = false;

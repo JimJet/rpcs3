@@ -1186,7 +1186,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="groupBox_2">
+          <widget class="QGroupBox" name="gb_colors">
            <property name="title">
             <string>UI Colors</string>
            </property>
