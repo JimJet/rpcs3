@@ -253,6 +253,12 @@ void msg_dialog_frame::CreateOsk(const std::string& msg, char16_t* osk_text, u32
 	//Fix size
 	osk_dialog->layout()->setSizeConstraint(QLayout::SetFixedSize);
 	osk_dialog->show();
+
+	//nvidia hack of doom
+	osk_dialog->setWindowFlags(Qt::Window);
+	osk_dialog->showFullScreen();
+	osk_dialog->showNormal();;
+	input->setFocus();
 }
 
 msg_dialog_frame::msg_dialog_frame(QWindow* taskbarTarget) : m_taskbarTarget(taskbarTarget) {}
