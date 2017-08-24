@@ -15,7 +15,7 @@ struct input_config final : cfg::node
 {
 	const std::string cfg_name = fs::get_config_dir() + "/config_input.yml";
 
-	cfg::_enum<pad_handler> player_input[7] = {
+	cfg::_enum<pad_handler> player_input[7]{
 		{ this, "Player 1 Input", pad_handler::keyboard },
 		{ this, "Player 2 Input", pad_handler::null },
 		{ this, "Player 3 Input", pad_handler::null },
@@ -24,14 +24,15 @@ struct input_config final : cfg::node
 		{ this, "Player 6 Input", pad_handler::null },
 		{ this, "Player 7 Input", pad_handler::null } };
 
-	cfg::string player_device[7] = {
-		{ this, "Player 1 Device", "Keyboard" },
-		{ this, "Player 2 Device", "Default Null Device" },
-		{ this, "Player 3 Device", "Default Null Device" },
-		{ this, "Player 4 Device", "Default Null Device" },
-		{ this, "Player 5 Device", "Default Null Device" },
-		{ this, "Player 6 Device", "Default Null Device" },
-		{ this, "Player 7 Device", "Default Null Device" } };
+	cfg::string player1{ this, "Player 1 Device", "Keyboard" };
+	cfg::string player2{ this, "Player 2 Device", "Default Null Device" };
+	cfg::string player3{ this, "Player 3 Device", "Default Null Device" };
+	cfg::string player4{ this, "Player 4 Device", "Default Null Device" };
+	cfg::string player5{ this, "Player 5 Device", "Default Null Device" };
+	cfg::string player6{ this, "Player 6 Device", "Default Null Device" };
+	cfg::string player7{ this, "Player 7 Device", "Default Null Device" };
+
+	cfg::string *player_device[7]{ &player1, &player2, &player3, &player4, &player5, &player6, &player7 }; // Thanks gcc!
 
 	bool load()
 	{

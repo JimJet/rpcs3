@@ -9,6 +9,7 @@
 #include "Emu/Io/PadHandler.h"
 #include "stdafx.h"
 #include "Emu/System.h"
+#include "gui_settings.h"
 
 enum button_ids
 {
@@ -68,7 +69,7 @@ private:
 	keyboard_pad_handler* keyhdlr;
 
 public:
-	explicit pad_settings_dialog(keyboard_pad_handler* keyhandler, QWidget *parent = nullptr);
+	explicit pad_settings_dialog(keyboard_pad_handler* keyhandler, QWidget *parent = 0);
 	~pad_settings_dialog();
 	void keyPressEvent(QKeyEvent *keyEvent) override;
 	void UpdateLabel();

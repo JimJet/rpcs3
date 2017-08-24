@@ -67,7 +67,7 @@ public:
 	bool eventFilter(QObject* obj, QEvent* ev) override;
 
 	std::vector<std::string> ListDevices() override;
-	bool bindPadToDevice(Pad *pad, std::string& device) override;
+	bool bindPadToDevice(Pad *pad, const std::string& device) override;
 	void ThreadProc() override;
 	void ConfigController(std::string device) override;
 

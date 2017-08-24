@@ -255,5 +255,5 @@ public:
 	//Callback called during pad_thread::ThreadFunc
 	virtual void ThreadProc() = 0;
 	//Binds a Pad to a device
-	virtual bool bindPadToDevice(Pad *pad, std::string& device) = 0;
+	virtual bool bindPadToDevice(Pad *pad, const std::string& device) = 0;
 };

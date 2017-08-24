@@ -1,8 +1,12 @@
 #include "pad_thread.h"
-#include "rpcs3qt\gamepads_settings_dialog.h"
+#include "rpcs3qt/gamepads_settings_dialog.h"
 #include "../ds4_pad_handler.h"
+#ifdef _WIN32
 #include "../xinput_pad_handler.h"
 #include "../mm_joystick_handler.h"
+#elif HAVE_LIBEVDEV
+#include "../evdev_joystick_handler.h"
+#endif
 #include "../keyboard_pad_handler.h"
 #include "../Emu/Io/Null/NullPadHandler.h"
 
@@ -83,11 +87,11 @@ void pad_thread::Init(const u32 max_connect)
 			CELL_PAD_CAPABILITY_PS3_CONFORMITY | CELL_PAD_CAPABILITY_PRESS_MODE | CELL_PAD_CAPABILITY_ACTUATOR,
 			CELL_PAD_DEV_TYPE_STANDARD
 		);
-		if (cur_pad_handler->bindPadToDevice(&m_pads.back(), input_cfg.player_device[i].to_string()) == false)
+		if (cur_pad_handler->bindPadToDevice(&m_pads.back(), input_cfg.player_device[i]->to_string()) == false)
 		{
 			//Failed to bind the device to cur_pad_handler so binds to NullPadHandler
-			LOG_ERROR(GENERAL, "Failed to bind device %s to handler %s", input_cfg.player_device[i].to_string(), input_cfg.player_input[i].to_string());
-			nullpad->bindPadToDevice(&m_pads.back(), input_cfg.player_device[i].to_string());
+			LOG_ERROR(GENERAL, "Failed to bind device %s to handler %s", input_cfg.player_device[i]->to_string(), input_cfg.player_input[i].to_string());
+			nullpad->bindPadToDevice(&m_pads.back(), input_cfg.player_device[i]->to_string());
 		}
 	}
 

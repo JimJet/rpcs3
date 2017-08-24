@@ -11,7 +11,7 @@
 
 namespace
 {
-	const auto THREAD_SLEEP = 1ms; //ds4 has new data every ~4ms, 
+	const auto THREAD_SLEEP = 1ms; //ds4 has new data every ~4ms,
 	const auto THREAD_SLEEP_INACTIVE = 100ms;
 
 	const u32 DS4_ACC_RES_PER_G = 8192;
@@ -57,12 +57,12 @@ namespace
 		// compute angle and len of given point to be used for squircle radius
 		const f32 angle = std::atan2(y, x);
 		const f32 r = std::sqrt(std::pow(x, 2.f) + std::pow(y, 2.f));
-		
+
 		// now find len/point on the given squircle from our current angle and radius in polar coords
 		// https://thatsmaths.com/2016/07/14/squircles/
 		const f32 newLen = (1 + std::pow(std::sin(2 * angle), 2.f) / 8.f) * r;
 
-		// we now have len and angle, convert to cartisian 
+		// we now have len and angle, convert to cartisian
 
 		const int newX = Clamp0To255(((newLen * std::cos(angle)) + 1) * 127);
 		const int newY = Clamp0To255(((newLen * std::sin(angle)) + 1) * 127);
@@ -159,7 +159,7 @@ void ds4_pad_handler::ProcessData()
 		pad->m_buttons[1].m_pressed = buf[9] > 0;
 		pad->m_buttons[1].m_value = buf[9];
 
-		// bleh, dpad in buffer is stored in a different state 
+		// bleh, dpad in buffer is stored in a different state
 		u8 dpadState = buf[5] & 0xf;
 		switch (dpadState)
 		{
@@ -554,7 +554,7 @@ std::vector<std::string> ds4_pad_handler::ListDevices()
 	return ds4_pads_list;
 }
 
-bool ds4_pad_handler::bindPadToDevice(Pad *pad, std::string& device)
+bool ds4_pad_handler::bindPadToDevice(Pad *pad, const std::string& device)
 {
 	size_t pos = device.find("Ds4 Pad #");
 

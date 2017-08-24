@@ -4,7 +4,7 @@
 
 #include <QApplication>
 
-#include "rpcs3qt\pad_settings_dialog.h"
+#include "rpcs3qt/pad_settings_dialog.h"
 
 keyboard_pad_config g_kbpad_config;
 
@@ -58,7 +58,7 @@ void keyboard_pad_handler::Key(const u32 code, bool pressed, u16 value)
 
 			//slightly less hack job for key based analog stick
 			//	should also fix/make transitions when using keys smoother
-			//	the logic here is that when a key is released, 
+			//	the logic here is that when a key is released,
 			//	if we are at the opposite end of the axis, dont reset to middle
 			if (stick.m_keyCodeMax == code)
 			{
@@ -143,7 +143,7 @@ std::vector<std::string> keyboard_pad_handler::ListDevices()
 	return list_devices;
 }
 
-bool keyboard_pad_handler::bindPadToDevice(Pad *pad, std::string& device)
+bool keyboard_pad_handler::bindPadToDevice(Pad *pad, const std::string& device)
 {
 	if (device != "Keyboard") return false;
 

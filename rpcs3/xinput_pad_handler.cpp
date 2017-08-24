@@ -111,7 +111,7 @@ std::tuple<u16, u16> xinput_pad_handler::ConvertToSquirclePoint(u16 inX, u16 inY
 	// https://thatsmaths.com/2016/07/14/squircles/
 	const f32 newLen = (1 + std::pow(std::sin(2 * angle), 2.f) / squircle_factor) * r;
 
-	// we now have len and angle, convert to cartisian 
+	// we now have len and angle, convert to cartisian
 
 	const int newX = Clamp0To255(((newLen * std::cos(angle)) + 1) * 127);
 	const int newY = Clamp0To255(((newLen * std::sin(angle)) + 1) * 127);
@@ -237,7 +237,7 @@ std::vector<std::string> xinput_pad_handler::ListDevices()
 	return xinput_pads_list;
 }
 
-bool xinput_pad_handler::bindPadToDevice(Pad *pad, std::string& device)
+bool xinput_pad_handler::bindPadToDevice(Pad *pad, const std::string& device)
 {
 	//Convert device string to u32 representing xinput device number
 	u32 device_number = 0;

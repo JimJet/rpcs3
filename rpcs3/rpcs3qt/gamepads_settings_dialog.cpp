@@ -1,8 +1,12 @@
 #include "gamepads_settings_dialog.h"
 #include "../Emu/Io/PadHandler.h"
 #include "../ds4_pad_handler.h"
+#ifdef _WIN32
 #include "../xinput_pad_handler.h"
 #include "../mm_joystick_handler.h"
+#elif HAVE_LIBEVDEV
+#include "../evdev_joystick_handler.h"
+#endif
 #include "../keyboard_pad_handler.h"
 #include "../Emu/Io/Null/NullPadHandler.h"
 //#include "emu_settings.h"
@@ -98,7 +102,7 @@ gamepads_settings_dialog::gamepads_settings_dialog(QWidget* parent)
 
 		for (int j = 0; j < co_deviceID[i]->count(); j++)
 		{
-			if (co_deviceID[i]->itemText(j).toStdString() == input_cfg.player_device[i].to_string())
+			if (co_deviceID[i]->itemText(j).toStdString() == input_cfg.player_device[i]->to_string())
 			{
 				co_deviceID[i]->setCurrentIndex(j);
 				ChangeDevice(i);
@@ -116,7 +120,7 @@ void gamepads_settings_dialog::SaveExit()
 		if (co_deviceID[i]->currentData() == -1)
 		{
 			input_cfg.player_input[i].from_default();
-			input_cfg.player_device[i].from_default();
+			input_cfg.player_device[i]->from_default();
 		}
 	}
 
@@ -138,7 +142,7 @@ void gamepads_settings_dialog::ChangeDevice(int player)
 {
 	bool success;
 
-	success = input_cfg.player_device[player].from_string(co_deviceID[player]->currentText().toStdString());
+	success = input_cfg.player_device[player]->from_string(co_deviceID[player]->currentText().toStdString());
 
 	if (!success)
 	{
@@ -215,5 +219,5 @@ void gamepads_settings_dialog::ChangeInputType(int player)
 void gamepads_settings_dialog::ClickConfigButton(int player)
 {
 	std::shared_ptr<PadHandlerBase> cur_pad_handler = GetHandler(input_cfg.player_input[player]);
-	if (cur_pad_handler->has_config()) cur_pad_handler->ConfigController(input_cfg.player_device[player]);
+	if (cur_pad_handler->has_config()) cur_pad_handler->ConfigController(*input_cfg.player_device[player]);
 }

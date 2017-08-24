@@ -17,7 +17,7 @@ public:
 		return nulllist;
 	}
 
-	bool bindPadToDevice(Pad *pad, std::string& device) override
+	bool bindPadToDevice(Pad *pad, const std::string& device) override
 	{
 		return true;
 	}

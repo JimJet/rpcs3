@@ -67,6 +67,9 @@ pad_settings_dialog::pad_settings_dialog(keyboard_pad_handler *keyhandler, QWidg
 	g_kbpad_config.load();
 	UpdateLabel();
 
+	gui_settings settings(this);
+
+	ui->l_controller->setPixmap(settings.colorizedPixmap(*ui->l_controller->pixmap(), QColor(), GUI::get_Label_Color("l_controller"), false, true));
 	ui->l_controller->setMaximumSize(ui->gb_description->sizeHint().width(), ui->l_controller->maximumHeight() * ui->gb_description->sizeHint().width() / ui->l_controller->maximumWidth());
 	layout()->setSizeConstraint(QLayout::SetFixedSize);
 }

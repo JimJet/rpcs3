@@ -65,7 +65,7 @@ std::vector<std::string> mm_joystick_handler::ListDevices()
 	return mm_pad_list;
 }
 
-bool mm_joystick_handler::bindPadToDevice(Pad *pad, std::string& device)
+bool mm_joystick_handler::bindPadToDevice(Pad *pad, const std::string& device)
 {
 	if (!Init()) return false;
 
