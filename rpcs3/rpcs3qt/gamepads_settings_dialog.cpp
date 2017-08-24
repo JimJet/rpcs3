@@ -9,7 +9,6 @@
 #endif
 #include "../keyboard_pad_handler.h"
 #include "../Emu/Io/Null/NullPadHandler.h"
-//#include "emu_settings.h"
 #include "../Emu/System.h"
 
 input_config input_cfg;
@@ -22,6 +21,7 @@ gamepads_settings_dialog::gamepads_settings_dialog(QWidget* parent)
 	QVBoxLayout *dialog_layout = new QVBoxLayout();
 	QHBoxLayout *all_players = new QHBoxLayout();
 
+	input_cfg.from_default();
 	input_cfg.load();
 
 	auto fill_device_combo = [](QComboBox *combo)
@@ -48,7 +48,7 @@ gamepads_settings_dialog::gamepads_settings_dialog(QWidget* parent)
 		ppad_layout->addWidget(co_deviceID[i]);
 
 		QHBoxLayout *button_layout = new QHBoxLayout();
-		bu_config[i] = new QPushButton("Config");
+		bu_config[i] = new QPushButton(tr("Config"));
 		bu_config[i]->setEnabled(false);
 		button_layout->addSpacing(bu_config[i]->sizeHint().width()*0.50f);
 		button_layout->addWidget(bu_config[i]);
@@ -57,10 +57,6 @@ gamepads_settings_dialog::gamepads_settings_dialog(QWidget* parent)
 
 		grp_player->setLayout(ppad_layout);
 		all_players->addWidget(grp_player);
-
-		connect(co_inputtype[i], &QComboBox::currentTextChanged, [=] { ChangeInputType(i); });
-		connect(co_deviceID[i], &QComboBox::currentTextChanged, [=] { ChangeDevice(i); });
-		connect(bu_config[i], &QAbstractButton::clicked, [=] { ClickConfigButton(i); });
 
 		if (i == 3)
 		{
@@ -83,9 +79,6 @@ gamepads_settings_dialog::gamepads_settings_dialog(QWidget* parent)
 
 	setLayout(dialog_layout);
 	layout()->setSizeConstraint(QLayout::SetFixedSize);
-
-	connect(ok_button, &QPushButton::pressed, this, &gamepads_settings_dialog::SaveExit);
-	connect(cancel_button, &QPushButton::pressed, this, &gamepads_settings_dialog::CancelExit);
 
 	//Set the values from config
 	for (int i = 0; i < 7; i++)
@@ -110,6 +103,15 @@ gamepads_settings_dialog::gamepads_settings_dialog(QWidget* parent)
 			}
 		}
 	}
+
+	for (int i = 0; i < 7; i++)
+	{
+		connect(co_inputtype[i], &QComboBox::currentTextChanged, [=] { ChangeInputType(i); });
+		connect(co_deviceID[i], &QComboBox::currentTextChanged, [=] { ChangeDevice(i); });
+		connect(bu_config[i], &QAbstractButton::clicked, [=] { ClickConfigButton(i); });
+	}
+	connect(ok_button, &QPushButton::pressed, this, &gamepads_settings_dialog::SaveExit);
+	connect(cancel_button, &QPushButton::pressed, this, &gamepads_settings_dialog::CancelExit);
 }
 
 void gamepads_settings_dialog::SaveExit()
