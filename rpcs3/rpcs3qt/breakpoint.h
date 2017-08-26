@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "Utilities/types.h"
 #include <string>
@@ -11,6 +11,7 @@ enum BreakpointType : u8
 	bp_bpmh,
 	bp_bpmw,
 	bp_bpmd,
+	bp_bpma
 };
 
 extern std::array<std::map<u32, std::string>, 5> breakpoints_list;

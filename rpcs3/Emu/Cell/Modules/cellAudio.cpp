@@ -22,6 +22,7 @@ void audio_config::on_init(const std::shared_ptr<void>& _this)
 		ports[i].number = i;
 		ports[i].addr = m_buffer + AUDIO_PORT_OFFSET * i;
 		ports[i].index = m_indexes + i;
+		cellAudio.error("Audio Buffer for port %d at 0x%x", i, ports[i].addr.addr());
 	}
 
 	named_thread::on_init(_this);
@@ -309,8 +310,8 @@ void audio_config::on_task()
 		case 8: m_dump.WriteData(&buf8ch, sizeof(buf8ch)); break; // write file data (8 ch)
 		}
 
-		cellAudio.trace("Audio perf: start=%d (access=%d, AddData=%d, events=%d, dump=%d)",
-			time_pos, stamp1 - stamp0, stamp2 - stamp1, stamp3 - stamp2, get_system_time() - stamp3);
+		//cellAudio.trace("Audio perf: start=%d (access=%d, AddData=%d, events=%d, dump=%d)",
+		//	time_pos, stamp1 - stamp0, stamp2 - stamp1, stamp3 - stamp2, get_system_time() - stamp3);
 	}
 }
 

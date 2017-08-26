@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "bpmanager_panel.h"
 #include "breakpoint.h"
 #include "emu_settings.h"
@@ -7,7 +7,7 @@ std::array<std::map<u32, std::string>, 5> breakpoints_list;
 bool break_on_bpm = false;
 
 
-static const std::string bp_names[] = { "BPX", "BPMB", "BPMH", "BPMW", "BPMD" };
+static const std::string bp_names[] = { "BPX", "BPMB", "BPMH", "BPMW", "BPMD", "BPMA" };
 
 bpmanager_panel::bpmanager_panel(QWidget* parent)
 	: QDialog(parent)
@@ -57,7 +57,7 @@ bpmanager_panel::bpmanager_panel(QWidget* parent)
 	QHBoxLayout* hbox_bp_opt = new QHBoxLayout();
 	co_bptype = new QComboBox();
 	QStringList breakpoint_types;
-	breakpoint_types << "BPX" << "BPMB" << "BPMH" << "BPMW" << "BPMD";
+	breakpoint_types << "BPX" << "BPMB" << "BPMH" << "BPMW" << "BPMD" << "BPMA";
 	co_bptype->addItems(breakpoint_types);
 	hbox_bp_opt->addWidget(co_bptype);
 	t_addr = new QLineEdit();
@@ -131,8 +131,16 @@ void bpmanager_panel::add_breakpoint()
 	}
 
 	u32 type = co_bptype->currentIndex();
-	breakpoints_list[type][addr]=t_bpnote->text().toStdString();
-	//breakpoints_list[type].emplace(addr, t_bpnote->text().toStdString());
+
+	if (type == bp_bpma)
+	{
+		for(type = bp_bpmb; type < bp_bpma; type++)
+			breakpoints_list[type][addr] = t_bpnote->text().toStdString();
+	}
+	else
+	{
+		breakpoints_list[type][addr] = t_bpnote->text().toStdString();
+	}
 
 	t_addr->clear();
 	t_bpnote->clear();
