@@ -500,6 +500,9 @@
     <ClCompile Include="rpcs3qt\gamepads_settings_dialog.cpp">
       <Filter>Gui</Filter>
     </ClCompile>
+    <ClCompile Include="rpcs3qt\bpmanager_panel.cpp">
+      <Filter>Gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="\rpcs3qt\*.h">
@@ -560,6 +563,12 @@
       <Filter>Io</Filter>
     </ClInclude>
     <ClInclude Include="rpcs3qt\gamepads_settings_dialog.h">
+      <Filter>Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="rpcs3qt\bpmanager_panel.h">
+      <Filter>Gui</Filter>
+    </ClInclude>
+    <ClInclude Include="rpcs3qt\breakpoint.h">
       <Filter>Gui</Filter>
     </ClInclude>
   </ItemGroup>
