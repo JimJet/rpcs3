@@ -3373,6 +3373,13 @@ bool ppu_interpreter::LBZX(ppu_thread& ppu, ppu_opcode_t op)
 {
 	const u64 addr = op.ra ? ppu.gpr[op.ra] + ppu.gpr[op.rb] : ppu.gpr[op.rb];
 	ppu.gpr[op.rd] = vm::read8(vm::cast(addr, HERE));
+
+	if (breakpoints_list[bp_bpmb].count(addr) != 0)
+	{
+		LOG_SUCCESS(GENERAL, "BPMW: LBZX breakpoint loading 0x%x at 0x%x", (u8)ppu.gpr[op.rd], addr);
+		ppubreak(ppu);
+	}
+
 	return true;
 }
 
@@ -3380,6 +3387,13 @@ bool ppu_interpreter::LVX(ppu_thread& ppu, ppu_opcode_t op)
 {
 	const u64 addr = (op.ra ? ppu.gpr[op.ra] + ppu.gpr[op.rb] : ppu.gpr[op.rb]) & ~0xfull;
 	ppu.vr[op.vd] = vm::_ref<v128>(vm::cast(addr, HERE));
+
+	if (breakpoints_list[bp_bpmd].count(addr) != 0)
+	{
+		LOG_SUCCESS(GENERAL, "BPMD: LVX breakpoint reading vector at 0x%x", addr);
+		ppubreak(ppu);
+	}
+
 	return true;
 }
 
@@ -3582,6 +3596,13 @@ bool ppu_interpreter::STBX(ppu_thread& ppu, ppu_opcode_t op)
 {
 	const u64 addr = op.ra ? ppu.gpr[op.ra] + ppu.gpr[op.rb] : ppu.gpr[op.rb];
 	vm::write8(vm::cast(addr, HERE), (u8)ppu.gpr[op.rs]);
+
+	if (breakpoints_list[bp_bpmb].count(addr) != 0)
+	{
+		LOG_SUCCESS(GENERAL, "BPMB: STBX breakpoint storing 0x%x at 0x%x", (u8)ppu.gpr[op.rs], addr);
+		ppubreak(ppu);
+	}
+
 	return true;
 }
 
@@ -3872,6 +3893,13 @@ bool ppu_interpreter::STVXL(ppu_thread& ppu, ppu_opcode_t op)
 {
 	const u64 addr = (op.ra ? ppu.gpr[op.ra] + ppu.gpr[op.rb] : ppu.gpr[op.rb]) & ~0xfull;
 	vm::_ref<v128>(vm::cast(addr, HERE)) = ppu.vr[op.vs];
+
+	if (breakpoints_list[bp_bpmd].count(addr) != 0)
+	{
+		LOG_SUCCESS(GENERAL, "BPMD: STVXL breakpoint storing vector at 0x%x", addr);
+		ppubreak(ppu);
+	}
+
 	return true;
 }
 

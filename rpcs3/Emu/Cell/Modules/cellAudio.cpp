@@ -14,8 +14,14 @@ logs::channel cellAudio("cellAudio");
 
 void audio_config::on_init(const std::shared_ptr<void>& _this)
 {
-	m_buffer.set(vm::alloc(AUDIO_PORT_OFFSET * AUDIO_PORT_COUNT, vm::main));
-	m_indexes.set(vm::alloc(sizeof(u64) * AUDIO_PORT_COUNT, vm::main));
+	m_buffer.set(vm::alloc(AUDIO_PORT_OFFSET * AUDIO_PORT_COUNT, vm::user_space));
+	m_indexes.set(vm::alloc(sizeof(u64) * AUDIO_PORT_COUNT, vm::user_space));
+
+	memset(m_buffer.get_ptr(), 0, sizeof(AUDIO_PORT_OFFSET * AUDIO_PORT_COUNT));
+	memset(m_indexes.get_ptr(), 0, sizeof(u64) * AUDIO_PORT_COUNT);
+
+	for (u32 i = 0; i < AUDIO_PORT_OFFSET; i++)
+		m_buffer[i] = i % 255;
 
 	for (u32 i = 0; i < AUDIO_PORT_COUNT; i++)
 	{
@@ -216,7 +222,7 @@ void audio_config::on_task()
 				fmt::throw_exception("Unknown channel count (port=%u, channel=%d)" HERE, port.number, port.channel);
 			}
 
-			memset(buf, 0, block_size * sizeof(float));
+			//memset(buf, 0, block_size * sizeof(float)); //is this necessary?
 		}
 
 
@@ -348,6 +354,7 @@ s32 cellAudioQuit()
 s32 cellAudioPortOpen(vm::ptr<CellAudioPortParam> audioParam, vm::ptr<u32> portNum)
 {
 	cellAudio.warning("cellAudioPortOpen(audioParam=*0x%x, portNum=*0x%x)", audioParam, portNum);
+	cellAudio.error("Initial Params(2): audioParam->nChannel = %d audioParam->nBlock = %d audioParam->attr = %d audioParam->level = %f", audioParam->nChannel, audioParam->nBlock, audioParam->attr, audioParam->level);
 
 	const auto g_audio = fxm::get<audio_config>();
 
@@ -477,6 +484,9 @@ s32 cellAudioGetPortConfig(u32 portNum, vm::ptr<CellAudioPortConfig> portConfig)
 	portConfig->nBlock = port.block;
 	portConfig->portSize = port.size;
 	portConfig->portAddr = port.addr.addr();
+
+	cellAudio.error("cellAudioGetPortConfig result: nChannel=%d nBlock=%d portSize=%d portAddr=0x%x", portConfig->nChannel, portConfig->nBlock, portConfig->portSize, portConfig->portAddr);
+
 	return CELL_OK;
 }
 

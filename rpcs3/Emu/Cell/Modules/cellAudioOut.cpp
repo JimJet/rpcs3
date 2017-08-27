@@ -122,6 +122,7 @@ s32 cellAudioOutGetState(u32 audioOut, u32 deviceIndex, vm::ptr<CellAudioOutStat
 s32 cellAudioOutConfigure(u32 audioOut, vm::ptr<CellAudioOutConfiguration> config, vm::ptr<CellAudioOutOption> option, u32 waitForEvent)
 {
 	cellSysutil.warning("cellAudioOutConfigure(audioOut=%d, config=*0x%x, option=*0x%x, waitForEvent=%d)", audioOut, config, option, waitForEvent);
+	cellSysutil.error("Initial Params: config->channel = %d config->encoder = %d config->downmixer = %d", config->channel, config->encoder, config->downMixer);
 
 	switch (audioOut)
 	{
