@@ -15,7 +15,8 @@ s32 sceNpUtilBandwidthTestInitStart(u32 prio, size_t stack)
 s32 sceNpUtilBandwidthTestGetStatus()
 {
 	UNIMPLEMENTED_FUNC(sceNpUtil);
-	return CELL_OK;
+	//return CELL_OK;
+	return 2;
 }
 
 s32 sceNpUtilBandwidthTestShutdown()

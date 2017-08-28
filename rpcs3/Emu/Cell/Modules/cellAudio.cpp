@@ -14,8 +14,8 @@ logs::channel cellAudio("cellAudio");
 
 void audio_config::on_init(const std::shared_ptr<void>& _this)
 {
-	m_buffer.set(vm::alloc(AUDIO_PORT_OFFSET * AUDIO_PORT_COUNT, vm::user_space));
-	m_indexes.set(vm::alloc(sizeof(u64) * AUDIO_PORT_COUNT, vm::user_space));
+	m_buffer.set(vm::alloc(AUDIO_PORT_OFFSET * AUDIO_PORT_COUNT, vm::main));
+	m_indexes.set(vm::alloc(sizeof(u64) * AUDIO_PORT_COUNT, vm::main));
 
 	memset(m_buffer.get_ptr(), 0, sizeof(AUDIO_PORT_OFFSET * AUDIO_PORT_COUNT));
 	memset(m_indexes.get_ptr(), 0, sizeof(u64) * AUDIO_PORT_COUNT);

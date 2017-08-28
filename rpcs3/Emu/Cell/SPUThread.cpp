@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Utilities/lockless.h"
 #include "Utilities/sysinfo.h"
 #include "Emu/Memory/Memory.h"
@@ -866,6 +866,8 @@ void SPUThread::process_mfc_cmd()
 					transfer.tag = ch_mfc_cmd.tag;
 					transfer.cmd = MFC(ch_mfc_cmd.cmd & ~MFC_LIST_MASK);
 					transfer.size = size;
+
+					LOG_TRACE(SPU, "Transfer(list): eal=0x%x, lsa=0x%llx, size=0x%x", transfer.eal, transfer.lsa, transfer.size);
 
 					do_dma_transfer(transfer);
 					const u32 add_size = std::max<u32>(size, 16);

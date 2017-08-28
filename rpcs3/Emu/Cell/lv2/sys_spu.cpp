@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Emu/Memory/Memory.h"
 #include "Emu/System.h"
 #include "Emu/IdManager.h"
@@ -1314,6 +1314,8 @@ error_code sys_spu_thread_group_set_cooperative_victims(ppu_thread& ppu, u32 id,
 	{
 		return CELL_ESTAT;
 	}
+
+	//return CELL_OK;
 
 	for (u32 i = 0; i < 32; i++)
 	{
