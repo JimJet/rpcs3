@@ -14,7 +14,7 @@ s32 cellOskDialogLoadAsync(u32 container, vm::ptr<CellOskDialogParam> dialogPara
 {
 	cellOskDialog.warning("cellOskDialogLoadAsync(container=0x%x, dialogParam=*0x%x, inputFieldInfo=*0x%x)", container, dialogParam, inputFieldInfo);
 
-	u32 maxLength = inputFieldInfo->limit_length >= 512 ? 511 : inputFieldInfo->limit_length;
+	u32 maxLength = (inputFieldInfo->limit_length >= 512) ? 511 : (u32)inputFieldInfo->limit_length;
 
 	std::memset(s_osk_text, 0, sizeof(s_osk_text));
 
