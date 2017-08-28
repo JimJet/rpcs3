@@ -315,7 +315,7 @@ error_code sys_spu_thread_initialize(vm::ptr<u32> thread, u32 group_id, u32 spu_
 	}
 
 	//Dump image to file
-	dump_spu_to_file(group->imgs[spu_num]);
+	dump_spu_to_file(group->imgs[spu_num].first);
 
 	return CELL_OK;
 }
