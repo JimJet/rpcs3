@@ -3,7 +3,6 @@
 #include "Emu/IdManager.h"
 #include "Emu/Cell/PPUModule.h"
 
-#include "Emu/Io/PadHandler.h"
 #include "pad_thread.h"
 #include "cellPad.h"
 

@@ -102,8 +102,11 @@ void pad_thread::SetRumble(const u32 pad, u8 largeMotor, bool smallMotor) {
 	if (pad > m_pads.size())
 		return;
 
-	m_pads[pad].m_vibrateMotors[0].m_value = largeMotor;
-	m_pads[pad].m_vibrateMotors[1].m_value = smallMotor ? 255 : 0;
+	if (m_pads[pad].m_vibrateMotors.size() >= 2)
+	{
+		m_pads[pad].m_vibrateMotors[0].m_value = largeMotor;
+		m_pads[pad].m_vibrateMotors[1].m_value = smallMotor ? 255 : 0;
+	}
 }
 
 void pad_thread::ThreadFunc()

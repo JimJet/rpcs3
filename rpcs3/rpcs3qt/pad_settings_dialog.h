@@ -69,7 +69,7 @@ private:
 	keyboard_pad_handler* keyhdlr;
 
 public:
-	explicit pad_settings_dialog(keyboard_pad_handler* keyhandler, QWidget *parent = 0);
+	explicit pad_settings_dialog(keyboard_pad_handler* keyhandler, QWidget *parent = nullptr);
 	~pad_settings_dialog();
 	void keyPressEvent(QKeyEvent *keyEvent) override;
 	void UpdateLabel();

@@ -149,6 +149,8 @@ void gamepads_settings_dialog::ChangeDevice(int player)
 	if (!success)
 	{
 		//Something went wrong
+		LOG_ERROR(GENERAL, "Failed to convert device string:%s", co_deviceID[player]->currentText().toStdString().c_str());
+		return;
 	}
 }
 
@@ -196,6 +198,8 @@ void gamepads_settings_dialog::ChangeInputType(int player)
 	if (!success)
 	{
 		//Something went wrong
+		LOG_ERROR(GENERAL, "Failed to convert input string:%s", co_inputtype[player]->currentText().toStdString().c_str());
+		return;
 	}
 
 	std::shared_ptr<PadHandlerBase> cur_pad_handler = GetHandler(input_cfg.player_input[player]);
