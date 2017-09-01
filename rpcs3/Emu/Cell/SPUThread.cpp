@@ -694,6 +694,7 @@ void SPUThread::process_mfc_cmd()
 
 				if (rtime == vm::reservation_acquire(raddr, 128) && rdata == data)
 				{
+					LOG_TRACE(SPU, "MFC_PUTLLC_CMD Success!");
 					data = to_write;
 					result = true;
 
@@ -838,7 +839,9 @@ void SPUThread::process_mfc_cmd()
 
 				const list_element item = _ref<list_element>(ch_mfc_cmd.eal & 0x3fff8);
 
-				if (item.sb & 0x8000)
+				LOG_TRACE(SPU, "Transfer(list): element.sb = 0x%x element.ts = 0x%x element.ea = 0x%x", item.sb, item.ts, item.ea);
+
+				if (item.sb & 0x8000) //Stall and Notify bit
 				{
 					break;
 				}
@@ -856,6 +859,7 @@ void SPUThread::process_mfc_cmd()
 					if (!vm::check_addr(addr, size, vm::page_readable | (ch_mfc_cmd.cmd & MFC_PUT_CMD ? vm::page_writable : 0)))
 					{
 						// TODO
+						LOG_WARNING(SPU, "Missing Page on DMAC!");
 						break;
 					}
 

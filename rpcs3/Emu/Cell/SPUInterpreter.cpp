@@ -1,4 +1,4 @@
-﻿#include "stdafx.h"
+#include "stdafx.h"
 #include "Emu/Memory/Memory.h"
 #include "Emu/System.h"
 
@@ -35,7 +35,7 @@ void spu_interpreter::UNK(SPUThread& spu, spu_opcode_t op)
 
 
 #define SLASH(s) /##s
-#define SPUDEBUGTR SLASH(/)
+#define SPUDEBUGTR //SLASH(/)
 
 void spu_interpreter::set_interrupt_status(SPUThread& spu, spu_opcode_t op)
 {
@@ -1063,7 +1063,10 @@ void spu_interpreter::BRZ(SPUThread& spu, spu_opcode_t op)
 
 void spu_interpreter::STQA(SPUThread& spu, spu_opcode_t op)
 {
-	if(spu.pc == 0x34B4 || spu.pc == 0x032E8) LOG_ERROR(LOADER, "Special Store:%s", spu.gpr[op.rt]);
+	//if (spu_ls_target(0, op.i16) == 0x12F0) LOG_ERROR(LOADER, "Storing at 0x12F0 : 0x%x", spu.gpr[op.rt]);
+
+	//LOG_ERROR(LOADER, "Storing at 0x%x : 0x%x", spu_ls_target(0, op.i16), spu.gpr[op.rt]);
+
 	spu._ref<v128>(spu_ls_target(0, op.i16)) = spu.gpr[op.rt];
 }
 
