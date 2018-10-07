@@ -1,7 +1,8 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "PPUOpcodes.h"
 #include "PPUModule.h"
 #include "PPUAnalyser.h"
+#include "StaticHLE.h"
 
 #include <unordered_set>
 #include "yaml-cpp/yaml.h"
@@ -537,6 +538,16 @@ void ppu_module::analyse(u32 lib_toc, u32 entry)
 	// Assume first segment is executable
 	const u32 start = segs[0].addr;
 	const u32 end = segs[0].addr + segs[0].size;
+
+	// Search for static hle
+	StaticHleHandler shle;
+	shle.LoadPatterns(fs::get_config_dir() + "/static_hle.pat");
+
+	for (u32 i = segs[0].addr; i < (segs[0].addr + segs[0].size); i += 4)
+	{
+		vm::cptr<u8> _ptr = vm::cast(i);
+		shle.CheckAgainstPatterns(_ptr, (segs[0].addr + segs[0].size) - i, i);
+	}
 
 	// Known TOCs (usually only 1)
 	std::unordered_set<u32> TOCs;
