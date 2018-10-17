@@ -22,7 +22,7 @@
     <ProjectGuid>{70CD65B0-91D6-4FAE-9A7B-4AF55D0D1B12}</ProjectGuid>
     <RootNamespace>rpcs3</RootNamespace>
     <Keyword>Qt4VSv1.0</Keyword>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -217,9 +217,8 @@
       <PreprocessorDefinitions>_WINDOWS;UNICODE;WIN32;WIN64;WITH_DISCORD_RPC;QT_UI;QT_NO_DEBUG;QT_OPENGL_LIB;QT_WIDGETS_LIB;QT_GUI_LIB;QT_QML_LIB;QT_NETWORK_LIB;QT_CORE_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <PostBuildEvent>
-      <Command>
-        $(QTDIR)\bin\windeployqt --no-angle --no-opengl-sw --no-svg --no-translations --no-quick --plugindir "$(TargetDir)qt\plugins" "$(TargetPath)"
-      </Command>
+      <Command>$(QTDIR)\bin\windeployqt --no-angle --no-opengl-sw --no-svg --no-translations --no-quick --plugindir "$(TargetDir)qt\plugins" "$(TargetPath)"
+xcopy /y $(OutDir)rpcs3.exe G:\Rpcs3\</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
