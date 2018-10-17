@@ -25,7 +25,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C4A10229-4712-4BD2-B63E-50D93C67A038}</ProjectGuid>
     <RootNamespace>emucore</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -118,6 +118,7 @@
     <ClCompile Include="Emu\Cell\PPUTranslator.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Emu\Cell\StaticHLE.cpp" />
     <ClCompile Include="Emu\CPU\CPUTranslator.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -402,6 +403,7 @@
     <ClInclude Include="Emu\Cell\Modules\cellVoice.h" />
     <ClInclude Include="Emu\Cell\PPUAnalyser.h" />
     <ClInclude Include="Emu\Cell\PPUTranslator.h" />
+    <ClInclude Include="Emu\Cell\StaticHLE.h" />
     <ClInclude Include="Emu\CPU\CPUTranslator.h" />
     <ClInclude Include="Emu\IPC.h" />
     <ClInclude Include="Emu\Audio\AudioDumper.h" />
