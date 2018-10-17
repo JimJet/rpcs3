@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Utilities/VirtualMemory.h"
 #include "Utilities/bin_patch.h"
 #include "Crypto/sha1.h"
@@ -254,6 +254,7 @@ static void ppu_initialize_modules(const std::shared_ptr<ppu_linkage_info>& link
 		&ppu_module_manager::sysPrxForUser,
 		&ppu_module_manager::sys_libc,
 		&ppu_module_manager::sys_lv2dbg,
+		&ppu_module_manager::static_hle,
 	};
 
 	// Initialize double-purpose fake OPD array for HLE functions
@@ -541,6 +542,8 @@ static auto ppu_load_exports(const std::shared_ptr<ppu_linkage_info>& link, u32 
 					// Inject a branch to the HLE implementation
 					const u32 _entry = vm::read32(faddr);
 					const u32 target = ppu_function_manager::addr + 8 * _sf->index;
+
+					LOG_ERROR(LOADER, "Patching function %s to addr 0x%x", ppu_get_function_name(module_name, fnid), target);
 
 					if ((target <= _entry && _entry - target <= 0x2000000) || (target > _entry && target - _entry < 0x2000000))
 					{

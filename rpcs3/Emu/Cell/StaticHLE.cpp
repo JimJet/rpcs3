@@ -7,8 +7,6 @@ extern void ppu_register_function_at(u32 addr, u32 size, ppu_function_t ptr);
 
 vm::ptr<void> hle_memcpy(vm::ptr<void> dst, vm::cptr<void> src, u32 size)
 {
-	static_hle.error("hle_memcpy(dst=*0x%x, src=*0x%x, size=0x%x)", dst, src, size);
-
 	std::memcpy(dst.get_ptr(), src.get_ptr(), size);
 
 	return dst;
@@ -16,18 +14,48 @@ vm::ptr<void> hle_memcpy(vm::ptr<void> dst, vm::cptr<void> src, u32 size)
 
 vm::ptr<void> hle_memset(vm::ptr<void> dst, s32 value, u32 size)
 {
-	static_hle.error("hle_memset(dst=*0x%x, value=%d, size=0x%x)", dst, value, size);
-
 	std::memset(dst.get_ptr(), value, size);
 
 	return dst;
 }
 
-//DECLARE(ppu_module_manager::static_hle)
-//("static_hle", []() {
-//	REG_FNID(static_hle, "hle_memset", hle_memset);
-//	REG_FNID(static_hle, "hle_memcpy", hle_memcpy);
-//});
+vm::ptr<void> hle_memmove(vm::ptr<void> dst, vm::ptr<void> src, u32 size)
+{
+	std::memmove(dst.get_ptr(), src.get_ptr(), size);
+
+	return dst;
+}
+
+vm::ptr<void> hle_wmemcpy(vm::ptr<void> dst, vm::cptr<void> src, u32 size)
+{
+	std::wmemcpy((wchar_t*)dst.get_ptr(), (wchar_t*)src.get_ptr(), size);
+
+	return dst;
+}
+
+vm::ptr<void> hle_wmemset(vm::ptr<void> dst, s32 value, u32 size)
+{
+	std::wmemset((wchar_t*)dst.get_ptr(), value, size);
+
+	return dst;
+}
+
+vm::ptr<void> hle_wmemmove(vm::ptr<void> dst, vm::ptr<void> src, u32 size)
+{
+	std::wmemmove((wchar_t*)dst.get_ptr(), (wchar_t*)src.get_ptr(), size);
+
+	return dst;
+}
+
+DECLARE(ppu_module_manager::static_hle) ("static_hle", []()
+{
+	REG_FNID(static_hle, "hle_memset", hle_memset);
+	REG_FNID(static_hle, "hle_memcpy", hle_memcpy);
+	REG_FNID(static_hle, "hle_memmove", hle_memmove);
+	REG_FNID(static_hle, "hle_wmemset", hle_wmemset);
+	REG_FNID(static_hle, "hle_wmemcpy", hle_wmemcpy);
+	REG_FNID(static_hle, "hle_wmemmove", hle_wmemmove);
+});
 
 StaticHleHandler::StaticHleHandler()
 {
@@ -173,6 +201,13 @@ bool StaticHleHandler::CheckAgainstPatterns(vm::cptr<u8>& data, u32 size, u32 ad
 
 		//	Patch the code
 		const auto smodule = ppu_module_manager::get_module("static_hle");
+
+		if (smodule == nullptr)
+		{
+			static_hle.error("Couldn't find static_hle module");
+			return false;
+		}
+
 		const auto sfunc   = &smodule->functions.at(pat.fnid);
 		const u32 _entry   = addr;
 		const u32 target   = ppu_function_manager::addr + 8 * sfunc->index;
@@ -181,28 +216,29 @@ bool StaticHleHandler::CheckAgainstPatterns(vm::cptr<u8>& data, u32 size, u32 ad
 
 		static_hle.success("Target:0x%x, sfunc->index:0x%x", target, sfunc->index);
 
-		vm::write32(_entry, _entry);
-		vm::write32(_entry + 4, ppu_instructions::BLR());
-		ppu_register_function_at(_entry + 0, size - 4, hle_funcs[sfunc->index]);
-		ppu_register_function_at(_entry + size - 4, 4, nullptr);
-
-		//	if ((target <= _entry && _entry - target <= 0x2000000) || (target > _entry && target - _entry < 0x2000000))
+		//if ((target <= _entry && _entry - target <= 0x2000000) || (target > _entry && target - _entry < 0x2000000))
 		//{
 		//	// Use relative branch
-		//	//vm::write32(_entry, ppu_instructions::B(target - _entry));
-		//	ppu_register_function_at(addr + 0, 4, hle_funcs[index]);
-		//	ppu_register_function_at(addr + 4, 4, nullptr);
-
+		//	vm::write32(_entry, ppu_instructions::B(target - _entry));
+		//	ppu_instructions::BCCTR()
 		//}
-		//	else if (target < 0x2000000)
+		//else if (target < 0x2000000)
 		//{
 		//	// Use absolute branch if possible
 		//	vm::write32(_entry, ppu_instructions::B(target, true));
 		//}
-		//	else
+		//else
 		//{
 		//	static_hle.fatal("Failed to patch function at 0x%x (0x%x)", _entry, target);
+		//	return false;
 		//}
+
+		//Write stub
+		vm::write32(_entry, ppu_instructions::LI(0, 0));
+		vm::write32(_entry+4, ppu_instructions::LIS(0, (target&0xFFFF0000)>>16));
+		vm::write32(_entry+8, ppu_instructions::ORI(0, 0, target&0xFFFF));
+		vm::write32(_entry+12, ppu_instructions::MTCTR(0));
+		vm::write32(_entry+16, ppu_instructions::BCTR());
 
 		return true;
 	}
