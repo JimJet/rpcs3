@@ -43,8 +43,17 @@ vm::ptr<void> hle_wmemset(vm::ptr<void> dst, s32 value, u32 size)
 vm::ptr<void> hle_wmemmove(vm::ptr<void> dst, vm::ptr<void> src, u32 size)
 {
 	std::wmemmove((wchar_t*)dst.get_ptr(), (wchar_t*)src.get_ptr(), size);
-
 	return dst;
+}
+
+int hle_memcmp(vm::ptr<void> buf1, vm::ptr<void> buf2, u32 size)
+{
+	return std::memcmp(buf1.get_ptr(), buf2.get_ptr(), size);
+}
+
+int hle_wmemcmp(vm::ptr<void> buf1, vm::ptr<void> buf2, u32 size)
+{
+	return std::wmemcmp((wchar_t*)buf1.get_ptr(), (wchar_t*)buf2.get_ptr(), size);
 }
 
 DECLARE(ppu_module_manager::static_hle) ("static_hle", []()
@@ -55,6 +64,8 @@ DECLARE(ppu_module_manager::static_hle) ("static_hle", []()
 	REG_FNID(static_hle, "hle_wmemset", hle_wmemset);
 	REG_FNID(static_hle, "hle_wmemcpy", hle_wmemcpy);
 	REG_FNID(static_hle, "hle_wmemmove", hle_wmemmove);
+	REG_FNID(static_hle, "hle_memcmp", hle_memcmp);
+	REG_FNID(static_hle, "hle_wmemcmp", hle_wmemcmp);
 });
 
 StaticHleHandler::StaticHleHandler()
