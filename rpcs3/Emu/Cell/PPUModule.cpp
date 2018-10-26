@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Utilities/VirtualMemory.h"
 #include "Utilities/bin_patch.h"
 #include "Crypto/sha1.h"
@@ -12,6 +12,8 @@
 #include "Emu/Cell/PPUAnalyser.h"
 
 #include "Emu/Cell/lv2/sys_prx.h"
+
+#include "Emu/Cell/Modules/StaticHLE.h"
 
 #include <map>
 #include <set>
@@ -254,6 +256,7 @@ static void ppu_initialize_modules(const std::shared_ptr<ppu_linkage_info>& link
 		&ppu_module_manager::sysPrxForUser,
 		&ppu_module_manager::sys_libc,
 		&ppu_module_manager::sys_lv2dbg,
+		&ppu_module_manager::static_hle,
 	};
 
 	// Initialize double-purpose fake OPD array for HLE functions
@@ -1134,6 +1137,18 @@ void ppu_load_exec(const ppu_exec_object& elf)
 
 	// Initialize HLE modules
 	ppu_initialize_modules(link);
+
+	// Static HLE patching
+	if (g_cfg.core.hook_functions)
+	{
+		auto shle = fxm::get_always<StaticHleHandler>();
+
+		for (u32 i = _main->segs[0].addr; i < (_main->segs[0].addr + _main->segs[0].size); i += 4)
+		{
+			vm::cptr<u8> _ptr = vm::cast(i);
+			shle->CheckAgainstPatterns(_ptr, (_main->segs[0].addr + _main->segs[0].size) - i, i);
+		}
+	}
 
 	// Load other programs
 	for (auto& prog : elf.progs)
