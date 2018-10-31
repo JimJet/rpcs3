@@ -446,10 +446,10 @@ namespace rsx
 		RsxDisplayInfo display_buffers[8];
 		u32 display_buffers_count{0};
 		u32 current_display_buffer{0};
-		u32 ctxt_addr;
+		u32 device_addr;
 		u32 label_addr;
 
-		u32 local_mem_addr, main_mem_addr, main_mem_size{0};
+		u32 local_mem_addr, main_mem_size{0};
 
 		bool m_rtts_dirty;
 		bool m_textures_dirty[16];
