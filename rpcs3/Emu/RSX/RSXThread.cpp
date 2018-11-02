@@ -91,10 +91,10 @@ namespace rsx
 			return get_current_renderer()->label_addr + offset;
 
 		case CELL_GCM_CONTEXT_DMA_DEVICE_RW:
-			return get_current_renderer()->ctxt_addr + offset;
+			return get_current_renderer()->device_addr + offset;
 
 		case CELL_GCM_CONTEXT_DMA_DEVICE_R:
-			return get_current_renderer()->ctxt_addr + offset;
+			return get_current_renderer()->device_addr + offset;
 
 		default:
 			fmt::throw_exception("Invalid location (offset=0x%x, location=0x%x)" HERE, offset, location);
@@ -2234,26 +2234,6 @@ namespace rsx
 		return{ address, base, tile, (u8*)vm::base(address) };
 	}
 
-	u32 thread::ReadIO32(u32 addr)
-	{
-		if (u32 ea = RSXIOMem.RealAddr(addr))
-		{
-			return vm::read32(ea);
-		}
-
-		fmt::throw_exception("%s(addr=0x%x): RSXIO memory not mapped" HERE, __FUNCTION__, addr);
-	}
-
-	void thread::WriteIO32(u32 addr, u32 value)
-	{
-		if (u32 ea = RSXIOMem.RealAddr(addr))
-		{
-			return vm::write32(ea, value);
-		}
-
-		fmt::throw_exception("%s(addr=0x%x): RSXIO memory not mapped" HERE, __FUNCTION__, addr);
-	}
-
 	std::pair<u32, u32> thread::calculate_memory_requirements(const vertex_input_layout& layout, u32 vertex_count)
 	{
 		u32 persistent_memory_size = 0;
@@ -2727,9 +2707,7 @@ namespace rsx
 	{
 		if (!m_rsx_thread_exiting && address < 0xC0000000)
 		{
-			u32 ea = address >> 20, io = RSXIOMem.io[ea];
-
-			if (io < 512)
+			if (u32 ea = address >> 20, io = RSXIOMem.io[ea]; io < 512)
 			{
 				if (!isHLE)
 				{
@@ -2744,6 +2722,13 @@ namespace rsx
 						offsetTable.ioAddress[ea++] = 0xFFFF;
 						offsetTable.eaAddress[io++] = 0xFFFF;
 					}
+				}
+
+				ea = address >> 20, io = RSXIOMem.io[ea];
+				for (const u32 end = ea + (size >> 20); ea < end;)
+				{
+					RSXIOMem.io[ea++] = 0xFFFF;
+					RSXIOMem.ea[io++] = 0xFFFF;
 				}
 			}
 

@@ -446,10 +446,10 @@ namespace rsx
 		RsxDisplayInfo display_buffers[8];
 		u32 display_buffers_count{0};
 		u32 current_display_buffer{0};
-		u32 ctxt_addr;
+		u32 device_addr;
 		u32 label_addr;
 
-		u32 local_mem_addr, main_mem_addr, main_mem_size{0};
+		u32 local_mem_addr, main_mem_size{0};
 
 		bool m_rtts_dirty;
 		bool m_textures_dirty[16];
@@ -694,9 +694,6 @@ namespace rsx
 
 		// Emu App/Game flip, only immediately flips when called from rsxthread
 		void request_emu_flip(u32 buffer);
-
-		u32 ReadIO32(u32 addr);
-		void WriteIO32(u32 addr, u32 value);
 
 		void pause();
 		void unpause();

@@ -398,11 +398,7 @@ s32 _cellGcmInitBody(ppu_thread& ppu, vm::pptr<CellGcmContextData> context, u32 
 	m_config->current_config.coreFrequency = 500000000;
 
 	// Create contexts
-	auto ctx_area = vm::find_map(0x10000000, 0x10000000, 0x403);
-	u32 rsx_ctxaddr = ctx_area ? ctx_area->addr : 0;
-
-	if (!rsx_ctxaddr || vm::falloc(rsx_ctxaddr, 0x400000) != rsx_ctxaddr)
-		fmt::throw_exception("Failed to alloc rsx context.");
+	u32 rsx_ctxaddr = verify(HERE, vm::alloc(0x400000, vm::rsx_context));
 
 	g_defaultCommandBufferBegin = ioAddress;
 	g_defaultCommandBufferFragmentCount = cmdSize / (32 * 1024);
@@ -436,10 +432,9 @@ s32 _cellGcmInitBody(ppu_thread& ppu, vm::pptr<CellGcmContextData> context, u32 
 	ppu_execute<&sys_ppu_thread_create>(ppu, +_tid, 128, 0, 1, 0x4000, SYS_PPU_THREAD_CREATE_INTERRUPT, +_name);
 	render->intr_thread = idm::get<named_thread<ppu_thread>>(*_tid);
 	render->intr_thread->state -= cpu_flag::stop;
-	render->main_mem_addr = 0;
 	render->isHLE = true;
 	render->label_addr = m_config->gcm_info.label_addr;
-	render->ctxt_addr = m_config->gcm_info.context_addr;
+	render->device_addr = m_config->gcm_info.context_addr;
 	render->init(ioAddress, ioSize, m_config->gcm_info.control_addr - 0x40, local_addr);
 
 	return CELL_OK;
@@ -955,6 +950,15 @@ s32 gcmMapEaIoAddress(u32 ea, u32 io, u32 size, bool is_strict)
 		 return CELL_GCM_ERROR_FAILURE;
 	}
 
+	for (u32 addr = ea, end = ea + size; addr < end; addr += 0x100000)
+	{
+		if (!vm::check_addr(addr, 1, vm::page_1m_size))
+		{
+			// Error code coming from the syscall
+			return CELL_EINVAL;
+		}
+	}
+
 	ea >>=20, io >>= 20, size >>= 20;
 
 	IoMapTable[ea] = size;
@@ -1008,6 +1012,15 @@ s32 cellGcmMapMainMemory(u32 ea, u32 size, vm::ptr<u32> offset)
 	cellGcmSys.warning("cellGcmMapMainMemory(ea=0x%x, size=0x%x, offset=*0x%x)", ea, size, offset);
 
 	if (!size || (ea & 0xFFFFF) || (size & 0xFFFFF)) return CELL_GCM_ERROR_FAILURE;
+
+	for (u32 addr = ea, end = ea + size; addr < end; addr += 0x100000)
+	{
+		if (!vm::check_addr(addr, 1, vm::page_1m_size))
+		{
+			// Error code coming from the syscall
+			return CELL_EINVAL;
+		}
+	}
 
 	// Use the offset table to find the next free io address
 	for (u32 io = 0, end = (rsx::get_current_renderer()->main_mem_size - reserved_size) >> 20, unmap_count = 1; io < end; unmap_count++)
