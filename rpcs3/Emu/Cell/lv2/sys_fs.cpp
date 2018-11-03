@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "sys_fs.h"
 
 #include <mutex>
@@ -989,12 +989,17 @@ error_code sys_fs_fcntl(u32 fd, u32 op, vm::ptr<void> _arg, u32 _size)
 		const auto arg = vm::static_ptr_cast<lv2_file_c0000002>(_arg);
 
 		const std::string_view vpath = arg->path.get_ptr();
-		const std::string local_path = vfs::get(vpath);
 
-		if (vpath.find_first_not_of('/') == -1)
+		if (vpath[0] != '/')
 		{
 			return {CELL_EPERM, vpath};
 		}
+
+		//Extract device from path
+		const std::size_t lastslash = (vpath.find_first_of('/', 1) == std::string_view::npos) ? vpath.length() : vpath.find_first_of('/', 1)+1;
+		const std::string device_path = std::string(vpath).substr(0, lastslash);
+
+		const std::string local_path = vfs::get(device_path);
 
 		if (local_path.empty())
 		{
