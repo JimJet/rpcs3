@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Emu/Memory/vm.h"
 #include "Emu/System.h"
 #include "Emu/IdManager.h"
@@ -638,7 +638,7 @@ error_code sys_spu_thread_group_join(ppu_thread& ppu, u32 id, vm::ptr<u32> cause
 
 		lv2_obj::sleep(ppu);
 
-		while ((group->join_state & ~SPU_TGJSF_IS_JOINING) == 0)
+		while (true)
 		{
 			if (ppu.is_stopped())
 			{
@@ -651,7 +651,7 @@ error_code sys_spu_thread_group_join(ppu_thread& ppu, u32 id, vm::ptr<u32> cause
 			{
 				if (t)
 				{
-					if ((t->status & SPU_STATUS_STOPPED_BY_STOP) == 0)
+					if (t->status_in_cputask)
 					{
 						stopped = false;
 						break;
@@ -659,7 +659,7 @@ error_code sys_spu_thread_group_join(ppu_thread& ppu, u32 id, vm::ptr<u32> cause
 				}
 			}
 
-			if (stopped)
+			if (stopped && (group->join_state & ~SPU_TGJSF_IS_JOINING) != 0)
 			{
 				break;
 			}

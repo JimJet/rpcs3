@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Emu/Cell/Common.h"
 #include "Emu/CPU/CPUThread.h"
@@ -557,6 +557,7 @@ public:
 	atomic_t<u32> ch_event_mask;
 	atomic_t<u32> ch_event_stat;
 	atomic_t<bool> interrupts_enabled;
+	atomic_t<bool> status_in_cputask;
 
 	u64 ch_dec_start_timestamp; // timestamp of writing decrementer value
 	u32 ch_dec_value; // written decrementer value

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Utilities/JIT.h"
 #include "Utilities/sysinfo.h"
 #include "Emu/Memory/vm.h"
@@ -474,6 +474,8 @@ void spu_thread::cpu_init()
 	int_ctrl[2].clear();
 
 	gpr[1]._u32[3] = 0x3FFF0; // initial stack frame pointer
+
+	status_in_cputask.store(false);
 }
 
 extern thread_local std::string(*g_tls_log_prefix)();
@@ -482,6 +484,8 @@ void spu_thread::cpu_task()
 {
 	// Get next PC and SPU Interrupt status
 	pc = npc.exchange(0);
+
+	status_in_cputask.store(true);
 
 	set_interrupt_status((pc & 1) != 0);
 
@@ -510,6 +514,8 @@ void spu_thread::cpu_task()
 
 		// save next PC and current SPU Interrupt status
 		npc = pc | (interrupts_enabled);
+
+		status_in_cputask.store(false);
 
 		// Print some stats
 		LOG_NOTICE(SPU, "Stats: Block Weight: %u (Retreats: %u);", block_counter, block_failure);
@@ -596,6 +602,8 @@ void spu_thread::cpu_task()
 
 	// save next PC and current SPU Interrupt status
 	npc = pc | (interrupts_enabled);
+
+	status_in_cputask.store(false);
 }
 
 void spu_thread::cpu_mem()
