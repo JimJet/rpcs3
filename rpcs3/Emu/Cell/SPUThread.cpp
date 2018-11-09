@@ -1306,7 +1306,7 @@ bool spu_thread::process_mfc_cmd(spu_mfc_cmd args)
 
 				// Full lock (heavyweight)
 				// TODO: vm::check_addr
-				vm::writer_lock lock(1);
+				//vm::writer_lock lock(1);
 
 				if (rtime == (res & ~1ull) && rdata == data)
 				{
