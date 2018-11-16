@@ -957,13 +957,15 @@ std::shared_ptr<lv2_prx> ppu_load_prx(const ppu_prx_object& elf, const std::stri
 
 		// Apply the patch
 		const vm::cptr<u8> patch_ptr = vm::cast(prx->segs[0].addr);
-		auto applied = fxm::check_unlocked<patch_engine>()->apply(hash, (u8 *)patch_ptr.get_ptr());
+		auto applied = fxm::check_unlocked<patch_engine>()->apply(hash, (u8 *)vm::base(prx->segs[0].addr));
 
 		if (!Emu.GetTitleID().empty())
 		{
 			// Alternative patch
-			applied += fxm::check_unlocked<patch_engine>()->apply(Emu.GetTitleID() + '-' + hash, vm::g_base_addr);
+			applied += fxm::check_unlocked<patch_engine>()->apply(Emu.GetTitleID() + '-' + hash, (u8 *)vm::base(prx->segs[0].addr));
 		}
+
+		prx->num_patches = applied;
 
 		LOG_NOTICE(LOADER, "PRX library hash: %s (<- %u)", hash, applied);
 
