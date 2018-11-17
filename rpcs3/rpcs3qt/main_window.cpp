@@ -96,7 +96,7 @@ void main_window::Init()
 	Q_EMIT RequestGlobalStylesheetChange(guiSettings->GetCurrentStylesheetPath());
 	ConfigureGuiFromSettings(true);
 
-#define BRANCH ExpP5
+#define BRANCH expP5
 
 #ifdef BRANCH
 	if ("RPCS3/rpcs3/master"s != STRINGIZE(BRANCH) && ""s != STRINGIZE(BRANCH))
