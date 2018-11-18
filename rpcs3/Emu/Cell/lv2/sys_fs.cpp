@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "sys_fs.h"
 
 #include <mutex>
@@ -250,7 +250,8 @@ error_code sys_fs_open(vm::cptr<char> path, s32 flags, vm::ptr<u32> fd, s32 mode
 		}
 		else
 		{
-			open_mode = {}; // error
+			// GT6 uses 0202(CELL_FS_O_RDWR | CELL_FS_O_EXCL) when opening bsdiff files when updating
+			flags &= ~CELL_FS_O_EXCL;
 		}
 	}
 
