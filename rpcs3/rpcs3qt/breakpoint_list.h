@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "stdafx.h"
 #include "Emu/CPU/CPUDisAsm.h"
@@ -6,6 +6,12 @@
 #include "breakpoint_handler.h"
 
 #include <QListWidget>
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QLineEdit>
+#include <QLabel>
+#include <QComboBox>
+#include <QPushButton>
 
 class breakpoint_list : public QListWidget
 {
@@ -17,6 +23,7 @@ public:
 	void ClearBreakpoints();
 	void AddBreakpoint(u32 addr);
 	void RemoveBreakpoint(u32 addr);
+	void ShowAddBreakpointWindow();
 
 	QColor m_text_color_bp;
 	QColor m_color_bp;

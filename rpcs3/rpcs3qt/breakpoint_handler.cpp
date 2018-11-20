@@ -1,8 +1,8 @@
-#include "breakpoint_handler.h"
+﻿#include "breakpoint_handler.h"
 
 extern void ppu_breakpoint(u32 loc, bool isAdding);
 
-breakpoint_handler::breakpoint_handler() :m_breakpoints()
+breakpoint_handler::breakpoint_handler() :m_breakpoints_list()
 {
 
 }
@@ -12,21 +12,35 @@ breakpoint_handler::~breakpoint_handler()
 
 }
 
-bool breakpoint_handler::HasBreakpoint(u32 loc) const
+bool breakpoint_handler::HasBreakpoint(u32 loc, bs_t<breakpoint_type> type)
 {
-	return m_breakpoints.find(loc) != m_breakpoints.end();
+	return (m_breakpoints_list.find(loc) != m_breakpoints_list.end()) && ((m_breakpoints_list[loc] & type) == type);
 }
 
-bool breakpoint_handler::AddBreakpoint(u32 loc)
+bool breakpoint_handler::AddBreakpoint(u32 loc, bs_t<breakpoint_type> type)
 {
-	m_breakpoints.insert(loc);
-	ppu_breakpoint(loc, true);
+	m_breakpoints_list[loc] = type;
+
+	if (type & breakpoint_type::bp_execute)
+	{
+		ppu_breakpoint(loc, true);
+	}
 	return true;
 }
 
-bool breakpoint_handler::RemoveBreakpoint(u32 loc)
+bool breakpoint_handler::RemoveBreakpoint(u32 loc, bs_t<breakpoint_type> type)
 {
-	m_breakpoints.erase(loc);
-	ppu_breakpoint(loc, false);
+	if ((m_breakpoints_list.find(loc) == m_breakpoints_list.end()) || ((m_breakpoints_list[loc] & type) != type))
+	{
+		return false;
+	}
+
+	m_breakpoints_list.erase(loc);
+
+	if (type & breakpoint_type::bp_execute)
+	{
+		ppu_breakpoint(loc, false);
+	}
+
 	return true;
 }
