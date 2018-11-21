@@ -513,6 +513,22 @@ void debugger_frame::ShowGotoAddressDialog()
 
 u64 debugger_frame::EvaluateExpression(const QString& expression)
 {
+	u32 index;
+	for (index = 0; index < expression.length(); index++)
+	{
+		if ((expression[index] < '0' && expression[index] > '9') && (expression[index] < 'A' && expression[index] > 'F') && (expression[index] < 'a' && expression[index] > 'f'))
+		{
+			break;
+		}
+	}
+
+	QString fixed_expression;
+
+	if (expression.length()!=0 && index == expression.length())
+	{
+		fixed_expression = QString("0x%1").arg(expression);
+	}
+
 	auto thread = cpu.lock();
 
 	// Parse expression
@@ -548,7 +564,7 @@ u64 debugger_frame::EvaluateExpression(const QString& expression)
 		}
 	}
 
-	return static_cast<ulong>(scriptEngine.evaluate(expression).toNumber());
+	return static_cast<ulong>(scriptEngine.evaluate(fixed_expression).toNumber());
 }
 
 void debugger_frame::ClearBreakpoints()
